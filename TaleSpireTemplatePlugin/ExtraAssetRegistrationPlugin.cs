@@ -19,7 +19,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "1.0.0.0";
+        public const string Version = "1.0.1.0";
 
         public string dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"\\";
 
@@ -138,40 +138,48 @@ namespace LordAshes
                 {
                     // Add new asset to the asset cache
                     newAssets = true;
-                    AssetBundle ab = FileAccessPlugin.AssetBundle.Load(location);
-                    TextAsset ta = ab.LoadAsset<TextAsset>("Info.txt");
-                    string txt = "";
-                    if (ta != null) { txt = ta.text; } else { txt = "{\"kind\": \"Creature\",\"id\": \"\",\"groupName\": \"Custom Content\",\"description\": \"" + System.IO.Path.GetFileName(location) + "\",\"name\": \"" + System.IO.Path.GetFileName(location) + "\",\"tags\": \"\"}"; Debug.Log("Using Default Text"); }
-                    AssetInfo info = JsonConvert.DeserializeObject<AssetInfo>(txt);
-                    info.id = ExtraAssetsLibrary.DTO.Asset.GenerateID(ExtraAssetsRegistrationPlugin.Guid + "." + location).ToString();
-                    info.location = location;
-                    switch (groupStrategy)
+                    AssetBundle ab = null;
+                    try
                     {
-                        case AssetGroups.custom:
-                            break;
-                        case AssetGroups.listOnly:
-                            if (!groupStrategyList.Contains(info.groupName)) { info.groupName = "Custom Content"; }
-                            break;
-                        case AssetGroups.coreOnly:
-                            if (!coreGroups.Contains(info.groupName)) { info.groupName = "Custom Content"; }
-                            break;
-                        case AssetGroups.singleFolder:
-                            info.groupName = "Custom Content";
-                            break;
+                        ab = FileAccessPlugin.AssetBundle.Load(location);
+                        TextAsset ta = ab.LoadAsset<TextAsset>("Info.txt");
+                        string txt = "";
+                        if (ta != null) { txt = ta.text; } else { txt = "{\"kind\": \"Creature\",\"id\": \"\",\"groupName\": \"Custom Content\",\"description\": \"" + System.IO.Path.GetFileName(location) + "\",\"name\": \"" + System.IO.Path.GetFileName(location) + "\",\"tags\": \"\"}"; }
+                        AssetInfo info = JsonConvert.DeserializeObject<AssetInfo>(txt);
+                        info.id = ExtraAssetsLibrary.DTO.Asset.GenerateID(ExtraAssetsRegistrationPlugin.Guid + "." + location).ToString();
+                        info.location = location;
+                        switch (groupStrategy)
+                        {
+                            case AssetGroups.custom:
+                                break;
+                            case AssetGroups.listOnly:
+                                if (!groupStrategyList.Contains(info.groupName)) { info.groupName = "Custom Content"; }
+                                break;
+                            case AssetGroups.coreOnly:
+                                if (!coreGroups.Contains(info.groupName)) { info.groupName = "Custom Content"; }
+                                break;
+                            case AssetGroups.singleFolder:
+                                info.groupName = "Custom Content";
+                                break;
+                        }
+                        if (info.name == "") { info.name = System.IO.Path.GetFileName(location); }
+                        if (info.groupName == "") { info.groupName = "Custom Content"; }
+                        assetsByLocation.Add(info.location, info);
+                        Texture2D portrait = ab.LoadAsset<Texture2D>("Portrait.png");
+                        if (portrait != null)
+                        {
+                            System.IO.File.WriteAllBytes(dir + "cache\\" + info.id.ToString() + ".png", portrait.EncodeToPNG());
+                        }
+                        else
+                        {
+                            ExtraAssetsRegistrationPlugin.Image.CreateTextImage(info.name, 128, 128, dir + "Default.png").Save(dir + "cache\\" + info.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                        ab.Unload(true);
                     }
-                    if (info.name == "") { info.name = System.IO.Path.GetFileName(location); }
-                    if (info.groupName == "") { info.groupName = "Custom Content"; }
-                    assetsByLocation.Add(info.location, info);
-                    Texture2D portrait = ab.LoadAsset<Texture2D>("Portrait.png");
-                    if (portrait != null)
+                    catch (Exception)
                     {
-                        System.IO.File.WriteAllBytes(dir + "cache\\" + info.id.ToString() + ".png", portrait.EncodeToPNG());
+                        Debug.Log("Content " + location + " does not seem to be an assetBundle");
                     }
-                    else
-                    {
-                        ExtraAssetsRegistrationPlugin.Image.CreateTextImage(info.name, 128, 128, dir + "Default.png").Save(dir + "cache\\" + info.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
-                    }
-                    ab.Unload(true);
                 }
             }
             return newAssets;
