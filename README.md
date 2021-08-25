@@ -5,6 +5,8 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 
 ## Change Log
 
+1.0.1: Added code to ignore non-asset bundle assets
+
 1.0.0: Initial release
 
 ## Install
@@ -84,4 +86,43 @@ determine various infromation about the content including the group. It then com
 names and keeps the suggested group name only if it is on the list. If not the group is changed to Custom Content.
 
 If the content does not provide an info.txt file the Custom Content group is used.
+
+
+## Portraits and Asset Info
+
+While assetBundles without portraits and/or an info file are acceptable and defaults will be generated for both, you can include
+either or both of these to allow the Extra Asset Registration plugin to use that information instead of the defaults.
+
+### Portrait
+
+An assetBundle can include a custom portrait by including a Portrait.PNG file in the assetBundle. The file must be PNG and make,
+after importing it into Unity, to make it read/write (by checking the corresponding checkbox) and ensure that it does NOT use
+compression (by setting the compression setting to None). If these settings are not set properly, the Portrait may not be readable
+by the Extra Asset Registration plugin. The portrait will be used for both the image in the library and the player badge and
+initiative order symbol.
+
+### Info File
+
+An assetBundle can also include a info.txt file which contains a JSON string of information about the asset. Please note that
+while the content is JSON, the extension of the file remains txt. The conent should follow the format:
+
+```{
+  "kind": "Creature",
+  "groupName": "Fey",
+  "description": "Rogue fairy",
+  "name": "Trix",
+  "tags": "Tiny, Fairy"
+}```
+
+Where "kind" is always "Creature" at this point. This will be used in the future for things like Props and Tiles.
+Where "groupName" is the name of the group in the library that contains the asset. See Note 1 below.
+Where "description" is a description of the asset. Not currently used. To be used in the future. 
+Where "name" is the name of the asset. See Note 2 below.
+Where "tags" is a list of tags associated with the asset. Not currently used. To be used in the future. 
+
+Note 1: Depending on the Extra Asset Registration plugin group settings (see above) the groupName may be ignored
+        when determining the folder in which the asset will be placed in the library. In such case, as noted above,
+		the asset will be placed in a Custom Content folder.
+		
+Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
 
