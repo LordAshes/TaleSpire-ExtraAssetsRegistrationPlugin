@@ -106,13 +106,13 @@ initiative order symbol.
 An assetBundle can also include a info.txt file which contains a JSON string of information about the asset. Please note that
 while the content is JSON, the extension of the file remains txt. The conent should follow the format:
 
-```{
+{
   "kind": "Creature",
   "groupName": "Fey",
   "description": "Rogue fairy",
   "name": "Trix",
   "tags": "Tiny, Fairy"
-}```
+}
 
 Where "kind" is always "Creature" at this point. This will be used in the future for things like Props and Tiles.
 Where "groupName" is the name of the group in the library that contains the asset. See Note 1 below.
