@@ -19,17 +19,23 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "1.0.1.0";
+        public const string Version = "1.2.0.0";
 
         public string dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"\\";
 
+        // Soft Dependency
+        public const string cmpGuid = "org.lordashes.plugins.custommini";
+
+        // Settings
         private AutomaticAssetsSeekSetting seekSetting = AutomaticAssetsSeekSetting.newAssetsOnly;
         private AssetGroups groupStrategy = AssetGroups.custom;
         private string groupStrategyList = "";
         private const string coreGroups = "Beast,Constructs,Demonic,Dragonfolk,Dwarf,Elementals,Elf,Fey,Giants,Gnome,Goblin,Half-Demon,Halfling,Half-Orc,Human,Humanoid,Monsterous,Orc,Undead";
         private ConfigEntry<KeyboardShortcut> triggerRegistration;
 
+        // Local variables
         private Dictionary<string, AssetInfo> assetsByLocation = new Dictionary<string, AssetInfo>();
+        private bool controlKeyDown = false;
 
         /// <summary>
         /// Function for initializing plugin
@@ -70,26 +76,39 @@ namespace LordAshes
             foreach (AssetInfo asset in assetsByLocation.Values)
             {
                 Debug.Log("Extra Asset Registration Plugin: Registering [" + asset.location + "] in ["+ asset.groupName + "] as [" + asset.id + "]");
-                // assets.Add(asset.id, asset);
-                ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset()
+                try
                 {
-                    Id = new NGuid(asset.id),
-                    GroupName = asset.groupName,
-                    Name = asset.name,
-                    Description = asset.description,
-                    Kind = AssetDb.DbEntry.EntryKind.Creature,
-                    Icon = FileAccessPlugin.Image.LoadSprite(dir + "cache\\" + asset.id + ".png"),
-                    BaseCallback = null,
-                    ModelCallback = (nguid) =>
+                    ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset()
                     {
-                        Debug.Log("Extra Asset Registration Plugin: Loading [" + System.IO.Path.GetFileName(asset.location) + "] From AssetBundle [" + asset.location + "]");
-                        AssetBundle ab = FileAccessPlugin.AssetBundle.Load(asset.location);
-                        GameObject model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location));
-                        ab.Unload(false);
-                        return model;
-                    }
-                };
-                ExtraAssetPlugin.AddAsset(extraAsset);
+                        Id = new NGuid(asset.id),
+                        GroupName = asset.groupName,
+                        Name = asset.name,
+                        Description = asset.description,
+                        Kind = AssetDb.DbEntry.EntryKind.Creature,
+                        Icon = FileAccessPlugin.Image.LoadSprite(dir + "cache\\" + asset.id + ".png"),
+                        BaseCallback = null,
+                        ModelCallback = (nguid) =>
+                        {
+                            Debug.Log("Extra Asset Registration Plugin: [" + ((LocalClient.SelectedCreatureId != null) ? "Y" : "N") + "] Creature Selected, [" + ((controlKeyDown) ? "Y" : "N") + "] Control Key Held");
+                            if (controlKeyDown && LocalClient.SelectedCreatureId != null)
+                            {
+                                Debug.Log("Extra Asset Registration Plugin: CMP Request [" + System.IO.Path.GetFileName(asset.location) + "]");
+                                SDIM.InvokeResult success = SDIM.InvokeMethod("LordAshes-StatMessagingPlugin/StatMessaging.dll", "SetInfo", new object[] { LocalClient.SelectedCreatureId, cmpGuid, System.IO.Path.GetFileName(asset.location) });
+                                if (success == SDIM.InvokeResult.success) { return null; }
+                            }
+                            Debug.Log("Extra Asset Registration Plugin: Loading [" + System.IO.Path.GetFileName(asset.location) + "] From AssetBundle [" + asset.location + "]");
+                            AssetBundle ab = FileAccessPlugin.AssetBundle.Load(asset.location);
+                            GameObject model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location));
+                            ab.Unload(false);
+                            return model;
+                        }
+                    };
+                    ExtraAssetPlugin.AddAsset(extraAsset);
+                }
+                catch(Exception)
+                {
+                    Debug.Log("Extra Asset Registration Plugin: Failed To Register [" + System.IO.Path.GetFileName(asset.location) + "]");
+                }
             }
 
             // Write out new AssetInfo cache file
@@ -106,7 +125,12 @@ namespace LordAshes
         /// </summary>
         void Update()
         {
-            if(Utility.StrictKeyCheck(triggerRegistration.Value))
+            // Keep track of the right control key state since Unity only tracks changes for one cycle 
+            if (Input.GetKeyDown(KeyCode.RightControl)) { controlKeyDown = true; Debug.Log("CTRL: " + controlKeyDown); }
+            if (Input.GetKeyUp(KeyCode.RightControl)) { controlKeyDown = false; Debug.Log("CTRL: " + controlKeyDown); }
+
+            // Check for manual asset search
+            if (Utility.StrictKeyCheck(triggerRegistration.Value))
             {
                 SystemMessage.DisplayInfoText("Looking For New Assets...");
                 Debug.Log("Extra Asset Registration Plugin: Deleting Cache");
@@ -168,9 +192,16 @@ namespace LordAshes
                         Texture2D portrait = ab.LoadAsset<Texture2D>("Portrait.png");
                         if (portrait != null)
                         {
-                            System.IO.File.WriteAllBytes(dir + "cache\\" + info.id.ToString() + ".png", portrait.EncodeToPNG());
+                            try
+                            {
+                                System.IO.File.WriteAllBytes(dir + "cache\\" + info.id.ToString() + ".png", portrait.EncodeToPNG());
+                            }
+                            catch(Exception)
+                            {
+                                portrait = null;
+                            }
                         }
-                        else
+                        if (portrait == null)
                         {
                             ExtraAssetsRegistrationPlugin.Image.CreateTextImage(info.name, 128, 128, dir + "Default.png").Save(dir + "cache\\" + info.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
                         }
