@@ -5,6 +5,15 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 
 ## Change Log
 
+1.2.0: Added Soft Dependency Interface Module (SDIM) to access StatMessaging to allow removal of StatMessaging as a dependency.
+       if not using CMP integration then neither CMP nor StatMessaging is needed.
+       
+1.2.0: Added code to prevent registration failure of an asset to prevent other assets from being registered.
+
+1.1.1: Added missing manifest dependency (StatMessaging). No plugin change.
+
+1.1.0: Added integration with CMP support. Select mini and hold CTRL while selecting an asset in the library.
+
 1.0.1: Added code to ignore non-asset bundle assets
 
 1.0.0: Initial release
@@ -14,13 +23,30 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 Use R2ModMan or similar installer to install this plugin. Set the desired setting using the R2ModMan config for the plugin or
 keep the default settings.
 
+Optional: If you want to be able to do CMP Integration (transform existing minis using the TS asset library) then you will need
+          to install the following plugins: LordAshes-StatMessaging and LordAshes-CustomMiniPlugin. If these plugins are not
+		  installed, EAR will as normal but with no CMP integration functionality.
+
 ## Usage
 
+There are 2 application modes: New Mini and Transform Mini
 There are 3 different usage modes: Full Seek, New Assets Only, and Manual.
 There are 4 different grouping modes: Custom, List Only, Core Only, Single Folder.
 
+### Application Mode: New Mini
 
-### Full Seek
+In this mode the user click on a library selection, the corresponding asset will be picked up and can be dropped on the board
+one or more tiles. This is the same action as one would usually bring out core assets from the library.
+
+### Application Mode: Transform Mini
+
+In order to use the transform mini mode, the target mini first needs to be selected. Next the user must hold the Right CTRL key
+while making the desired selection in the library. Instead of bringing the selected asset out to be dropped on the board, the
+selected content is applied to the selected mini as a transformation (as long as CMP is installed). This function will not work
+if CMP is not installed but it will NOT prevent the New Mini fucntionality from working. So the plugin can be used without CMP
+if you only want it for pulling our new minis.
+
+### Usage Mode: Full Seek
 
 This mode causes the Extra Assets Registration plugin to search for assets ignoring the cache of existing assets. This produces
 the most accurate list of available assets, because it will catch both added and removed assets, but it also takes much longer
@@ -31,7 +57,7 @@ The startup time will always be longer in this mode. How much longer depends on 
 This mode does not need any manual interaction. Once TS is started, the assets will appear in the core TS library.
 
 
-### New Assets Only (Default Mode)
+### Usage Mode: New Assets Only (Default Mode)
 
 This mode causes the Extra Assets Registration plugin to look for new assets which have been added since the last check but not
 to look for removed assets. In this mode, new assets are detected without the need for manual trigger and/or needing to restart
@@ -46,7 +72,7 @@ plugin does not need to study any assets that it already knows about.
 This mode does not need any manual interaction. Once TS is started, the assets will appear in the core TS library.
 
 
-### Manual Mode
+### Usage Mode: Manual Mode
 
 This mode is used if you don't want Extra Assets Registration plugin to look for assets on start-up. It will only register assets
 which it had previous found. In this mode, the user needs to manually tell Extra Assets Registration plugin to look for new assets
@@ -61,7 +87,7 @@ This mode does not need any manual interaction to use the collected assets. Only
 required the above manual interaction.
 
 
-### Custom Grouping (Default Grouping)
+### Grouping Mode: Custom (Default Grouping)
 
 In custom grouping the plugin check to see if a info.txt file exists in the assetBundle. If so, it uses that information to determine
 various infromation about the content including the group in which it should appear in the library. This allows the content creator
@@ -70,7 +96,7 @@ to specify the group but it can also lead to a lot of custom groups if different
 If the content does not provide an info.txt file the Custom Content group is used.
 
 
-### List Only Grouping
+### Grouping Mode: List Only
 
 In list only grouping the plugin will check to see if a info.txt file exists in the assetBundle. If so, it uses that information to
 determine various infromation about the content including the group. It then compares the group name against the configured list and
@@ -79,13 +105,18 @@ keeps the suggested group name only if it is on the list. If not the group is ch
 If the content does not provide an info.txt file the Custom Content group is used.
 
 
-### Core Only Grouping
+### Grouping Mode: Core Only
 
 In core only grouping the plugin will check to see if a info.txt file exists in the assetBundle. If so, it uses that information to
 determine various infromation about the content including the group. It then compares the group name against the list of core group
 names and keeps the suggested group name only if it is on the list. If not the group is changed to Custom Content.
 
 If the content does not provide an info.txt file the Custom Content group is used.
+
+### Grouping Mode: Single Folder
+
+In single folder grouping all content is placed in a single Custom Content folder regardless if the content does or does not specify
+a group name.
 
 
 ## Portraits and Asset Info
@@ -125,4 +156,3 @@ Note 1: Depending on the Extra Asset Registration plugin group settings (see abo
 		the asset will be placed in a Custom Content folder.
 		
 Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
-
