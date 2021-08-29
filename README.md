@@ -5,17 +5,17 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 
 ## Change Log
 
+1.6.0: Reworked visibility code based on Hollo's TS base implementation
+1.5.0: Added code to implement visibility for EAR spawned assets
+1.3.1: Corrects spawned mini orientation so that facing is correct
+1.3.0: Changed how CMP Integration works and added support for CMP Transformation, CMP Aura and CMP Effect
+1.3.0: Added more logging during registry to identify issues with assetBundles that fail to register
 1.2.0: Added Soft Dependency Interface Module (SDIM) to access StatMessaging to allow removal of StatMessaging as a dependency.
        if not using CMP integration then neither CMP nor StatMessaging is needed.
-       
 1.2.0: Added code to prevent registration failure of an asset to prevent other assets from being registered.
-
 1.1.1: Added missing manifest dependency (StatMessaging). No plugin change.
-
 1.1.0: Added integration with CMP support. Select mini and hold CTRL while selecting an asset in the library.
-
 1.0.1: Added code to ignore non-asset bundle assets
-
 1.0.0: Initial release
 
 ## Install
@@ -29,7 +29,7 @@ Optional: If you want to be able to do CMP Integration (transform existing minis
 
 ## Usage
 
-There are 2 application modes: New Mini and Transform Mini
+There are 2 application modes: New Mini and CMP Integration
 There are 3 different usage modes: Full Seek, New Assets Only, and Manual.
 There are 4 different grouping modes: Custom, List Only, Core Only, Single Folder.
 
@@ -40,11 +40,25 @@ one or more tiles. This is the same action as one would usually bring out core a
 
 ### Application Mode: Transform Mini
 
-In order to use the transform mini mode, the target mini first needs to be selected. Next the user must hold the Right CTRL key
-while making the desired selection in the library. Instead of bringing the selected asset out to be dropped on the board, the
-selected content is applied to the selected mini as a transformation (as long as CMP is installed). This function will not work
-if CMP is not installed but it will NOT prevent the New Mini fucntionality from working. So the plugin can be used without CMP
-if you only want it for pulling our new minis.
+In this mode the selected library transformation, aura or effect will be applied to selected mini. Thus first a mini needs to
+be selected and then a transformation, aura or effect can be selected from the library. This functionality will only work if the
+optional StatMessaging plugin and CMP are installed. Transformation, aura and effect groups in the library have a "(CMP)" after
+them to indicated that they are only available if CMP integration is installed.
+
+Normally the Kind setting in the asset's bundle is used to determine which kind of asset it is: Character, Transformation, Aura
+or Effect. However, EAR also looks at the location of the file and looks for Transformation, Aura or Effect in the full location
+of the file.
+
+Character: The mini is spawned like any other core TS mini. Drop one or more copies of the mini on the board.
+Transformation: The minis appearance is replaced with the selected content. Mesh and materials only. Supports hide and fly modes.
+Aura: The selected aura is added to the selected mini. Aura does not support hide and fly mode.
+Effect: The selected mini apperance is replaced by the selected content. Similar to Transformation but supports effects but does
+        not support hide and fly mode.
+		
+For CMP users:
+
+Transformation => CMP Mini Transformation, Aura => CMP Effect, Effect => CMP Mini Transformation to blank + CMP Effect.
+
 
 ### Usage Mode: Full Seek
 
@@ -156,3 +170,9 @@ Note 1: Depending on the Extra Asset Registration plugin group settings (see abo
 		the asset will be placed in a Custom Content folder.
 		
 Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
+
+## Update Setting
+
+A setting in the configuration for this plugin in R2ModMan has been added. This setting indicates how many update cycles
+are skipped before resyncing visibility. The default is 10. Decreasing this number puts a larger stress on the CPU but
+updates visibility faster. Increasing the number lowers the stress on the CPU but visibility make take longer to update.
