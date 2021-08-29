@@ -6,16 +6,26 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 ## Change Log
 
 1.6.0: Reworked visibility code based on Hollo's TS base implementation
+
 1.5.0: Added code to implement visibility for EAR spawned assets
+
 1.3.1: Corrects spawned mini orientation so that facing is correct
+
 1.3.0: Changed how CMP Integration works and added support for CMP Transformation, CMP Aura and CMP Effect
+
 1.3.0: Added more logging during registry to identify issues with assetBundles that fail to register
+
 1.2.0: Added Soft Dependency Interface Module (SDIM) to access StatMessaging to allow removal of StatMessaging as a dependency.
        if not using CMP integration then neither CMP nor StatMessaging is needed.
+
 1.2.0: Added code to prevent registration failure of an asset to prevent other assets from being registered.
+
 1.1.1: Added missing manifest dependency (StatMessaging). No plugin change.
+
 1.1.0: Added integration with CMP support. Select mini and hold CTRL while selecting an asset in the library.
+
 1.0.1: Added code to ignore non-asset bundle assets
+
 1.0.0: Initial release
 
 ## Install
