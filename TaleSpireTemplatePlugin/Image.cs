@@ -15,7 +15,7 @@ namespace LordAshes
         {
             public static System.Drawing.Bitmap CreateTextImage(string txt, int width = 128, int height = 128, string source = "")
             {
-                int maxLength = "walloffirewall".Length;
+                int maxLength = 14;
                 if (txt.Length > maxLength)
                 { 
                     txt = txt.Substring(0, maxLength - 3) + "..."; 
@@ -29,7 +29,7 @@ namespace LordAshes
                 {
                     using (Font arialFont = new Font("Courier New", 10, FontStyle.Bold))
                     {
-                        if (source != "") { graphics.DrawImage(new System.Drawing.Bitmap(source),0,0); }
+                        try { if (source != "") { graphics.DrawImage(new System.Drawing.Bitmap(source), 0, 0); } } catch (Exception) {; }
                         graphics.DrawString(txt, arialFont, Brushes.Black, new PointF(5,100));                        
                     }
                 }
