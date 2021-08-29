@@ -54,19 +54,19 @@ Pull the asset from the scene back to the Content folder. A prompt will appear. 
 If you want your asset to have a nice portrait in the library (when using EAR) then add a PNG file to the Content folder. The PNG file needs to
 meet the following specifications:
 
-Name = Portrait.PNG
+- Name = Portrait.PNG
 
-Type = PNG
+- Type = PNG
 
-Size = 128x128
+- Size = 128x128
 
 After importing such a image file into Unity, using the Inspector ensure the following settings:
 
-Read/Write is checked.
+- Read/Write is checked.
 
-sRGB is checked.
+- sRGB is checked.
 
-Compression is set to None.
+- Compression is set to None.
 
 The compression setting is critical for the portrait to work. By default compression is not set to None.
 
@@ -75,11 +75,11 @@ The compression setting is critical for the portrait to work. By default compres
 If you want your asset to be placed in a specific folder in the library (when using EAR) you can add an optional text file which specifies such
 details. The file is regular text file. Although it contains JSON content the extension is still TXT. The file has the following specifications:
 
-Name = Info.txt
+- Name = Info.txt
 
-Type = Plain Text
+- Type = Plain Text
 
-Content = JSON
+- Content = JSON
 
 The content of the file should be similar to this:
 
