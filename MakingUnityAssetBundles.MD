@@ -10,7 +10,8 @@ create the following hierarchy which makes it easier to add things to the assetB
 ```Content
 + Meshes
 + Materials
-+ Texture```
++ Texture
+```
 
 Ensure that your project has the ability to create Asset Bundles. If not, you will need to create an Editor folder in your Unity Assets folder
 and add the necessary script. 
