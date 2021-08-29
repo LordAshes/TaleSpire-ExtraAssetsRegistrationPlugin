@@ -7,7 +7,8 @@ The follow is not a complete step by step set of instructions but a general work
 Open a 3D project in Unity. While not absolutely necessary, I recommend creating some organizational folders before you start. Typically I
 create the following hierarchy which makes it easier to add things to the assetBundle:
 
-```Content
+```
+Contents
 + Meshes
 + Materials
 + Texture
