@@ -22,9 +22,11 @@ and add the necessary script.
 Import your mesh (OBJ, FBX or any other format accepted by Unity). If you are using the folder structure above, import into the Meshes folder.
 Click on the mesh and ensure the following settings in the Inspector.
 
-Read/Write is checked (Required)
-Rig is set to None unless you are using animations (Recommended)
-Animations is unchecked unless you are using animations (Recommended)
+- Read/Write is checked (Required)
+
+- Rig is set to None unless you are using animations (Recommended)
+
+- Animations is unchecked unless you are using animations (Recommended)
 
 ## 3. Getting Materials/Textures
 
@@ -53,13 +55,17 @@ If you want your asset to have a nice portrait in the library (when using EAR) t
 meet the following specifications:
 
 Name = Portrait.PNG
+
 Type = PNG
+
 Size = 128x128
 
 After importing such a image file into Unity, using the Inspector ensure the following settings:
 
 Read/Write is checked.
+
 sRGB is checked.
+
 Compression is set to None.
 
 The compression setting is critical for the portrait to work. By default compression is not set to None.
@@ -70,7 +76,9 @@ If you want your asset to be placed in a specific folder in the library (when us
 details. The file is regular text file. Although it contains JSON content the extension is still TXT. The file has the following specifications:
 
 Name = Info.txt
+
 Type = Plain Text
+
 Content = JSON
 
 The content of the file should be similar to this:
