@@ -19,7 +19,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "1.6.0.0";
+        public const string Version = "1.7.0.0";
 
         public string dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"\\";
 
@@ -74,7 +74,7 @@ namespace LordAshes
             // Register Assets
             foreach (AssetInfo asset in assetsByLocation.Values)
             {
-                Debug.Log("Extra Asset Registration Plugin: Registering [" + asset.location + "] in ["+ asset.groupName + "] as [" + asset.id + "]");
+                Debug.Log("Extra Asset Registration Plugin: Registering [" + ((asset.location !="") ? asset.location : asset.name) + "] in ["+ asset.groupName + "] type ["+asset.kind+"] as [" + asset.id + "]");
                 try
                 {
                     ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset()
@@ -83,7 +83,7 @@ namespace LordAshes
                         GroupName = asset.groupName,
                         Name = asset.name,
                         Description = asset.description,
-                        Kind = AssetDb.DbEntry.EntryKind.Creature,
+                        Kind = (asset.kind.ToUpper()=="SLAB") ? AssetDb.DbEntry.EntryKind.Tile : AssetDb.DbEntry.EntryKind.Creature,
                         Icon = FileAccessPlugin.Image.LoadSprite(dir + "cache\\" + asset.id + ".png"),
                         BaseCallback = null,
                         ModelCallback = (nguid) =>
@@ -91,25 +91,33 @@ namespace LordAshes
                             CreatureBoardAsset transformationTarget = null;
                             CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out transformationTarget);
                             Debug.Log("Extra Asset Registration Plugin: [" + ((transformationTarget != null) ? "Y" : "N") + "] Creature Selected");
-                            if(asset.kind.ToUpper()=="TRANSFORMATION" && (transformationTarget!=null))
+                            if (asset.kind.ToUpper() == "TRANSFORMATION" && (transformationTarget != null))
                             {
                                 Debug.Log("Extra Asset Registration Plugin: CMP Transformation Request [" + System.IO.Path.GetFileName(asset.location) + "]");
                                 SDIM.InvokeResult success = SDIM.InvokeMethod("LordAshes-StatMessagingPlugin/StatMessaging.dll", "SetInfo", new object[] { LocalClient.SelectedCreatureId, cmpGuid, System.IO.Path.GetFileName(asset.location) });
                                 if (success == SDIM.InvokeResult.success) { return null; }
                             }
-                            else if (asset.kind.ToUpper() == "AURA"  && (transformationTarget != null))
+                            else if (asset.kind.ToUpper() == "AURA" && (transformationTarget != null))
                             {
                                 Debug.Log("Extra Asset Registration Plugin: CMP Effect Request [" + System.IO.Path.GetFileName(asset.location) + "]");
                                 SDIM.InvokeResult success = SDIM.InvokeMethod("LordAshes-StatMessagingPlugin/StatMessaging.dll", "SetInfo", new object[] { LocalClient.SelectedCreatureId, cmpGuid + ".effect", System.IO.Path.GetFileName(asset.location) });
                                 if (success == SDIM.InvokeResult.success) { return null; }
                             }
-                            else if (asset.kind.ToUpper() == "EFFECT"  && (transformationTarget != null))
+                            else if (asset.kind.ToUpper() == "EFFECT" && (transformationTarget != null))
                             {
                                 Debug.Log("Extra Asset Registration Plugin: CMP Blank Mini And Effect Request [" + System.IO.Path.GetFileName(asset.location) + "]");
                                 SDIM.InvokeResult success1 = SDIM.InvokeMethod("LordAshes-StatMessagingPlugin/StatMessaging.dll", "SetInfo", new object[] { LocalClient.SelectedCreatureId, cmpGuid, "blank" });
                                 SDIM.InvokeResult success2 = SDIM.InvokeMethod("LordAshes-StatMessagingPlugin/StatMessaging.dll", "SetInfo", new object[] { LocalClient.SelectedCreatureId, cmpGuid + ".effect", System.IO.Path.GetFileName(asset.location) });
                                 if (success1 == SDIM.InvokeResult.success && success2 == SDIM.InvokeResult.success) { return null; }
                             }
+                            else if (asset.kind.ToUpper() == "SLAB")
+                            {
+                                Debug.Log("Extra Asset Registration Plugin: Slab Paste [" + System.IO.Path.GetFileName(asset.location) + "]");
+                                DirtyClipboardHelper.PushToClipboard(asset.code);
+                                SystemMessage.DisplayInfoText("Presss CTRL+V To Paste The Selected Slab");
+                                return null;
+                            }
+
                             Debug.Log("Extra Asset Registration Plugin: Loading [" + System.IO.Path.GetFileName(asset.location) + "] From AssetBundle [" + asset.location + "]");
                             
                             AssetBundle ab = FileAccessPlugin.AssetBundle.Load(asset.location);
@@ -260,71 +268,6 @@ namespace LordAshes
             return newAssets;
         }
 
-        public bool ReplaceGameObjectMesh(GameObject source, GameObject destination)
-        {
-            if (destination == null) { Debug.Log("Destination Is Null"); return false; }
-            MeshFilter dMF = destination.GetComponent<MeshFilter>();
-            MeshRenderer dMR = destination.GetComponent<MeshRenderer>();
-            if (dMF == null || dMR == null) { Debug.LogWarning("Unable get destination MF or MR."); return false; }
-
-            destination.transform.position = new Vector3(0, 0, 0);
-            destination.transform.rotation = Quaternion.Euler(0, 0, 0);
-            destination.transform.eulerAngles = new Vector3(0, 0, 0);
-            destination.transform.localPosition = new Vector3(0, 0, 0);
-            destination.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            destination.transform.localEulerAngles = new Vector3(0, 180, 0);
-            destination.transform.localScale = new Vector3(1f, 1f, 1f);
-
-            dMF.transform.position = new Vector3(0, 0, 0);
-            dMF.transform.rotation = Quaternion.Euler(0, 0, 0);
-            dMF.transform.eulerAngles = new Vector3(0, 0, 0);
-            dMF.transform.localPosition = new Vector3(0, 0, 0);
-            dMF.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            dMF.transform.localEulerAngles = new Vector3(0, 0, 0);
-            dMF.transform.localScale = new Vector3(1, 1, 1);
-
-            dMR.transform.position = new Vector3(0, 0, 0);
-            dMR.transform.rotation = Quaternion.Euler(0, 0, 0);
-            dMR.transform.eulerAngles = new Vector3(0, 0, 0);
-            dMR.transform.localPosition = new Vector3(0, 0, 0);
-            dMR.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            dMR.transform.localEulerAngles = new Vector3(0, 0, 0);
-            dMR.transform.localScale = new Vector3(1, 1, 1);
-
-            MeshFilter sMF = (source.GetComponent<MeshFilter>() != null) ? source.GetComponent<MeshFilter>() : source.GetComponentInChildren<MeshFilter>();
-            if (sMF != null)
-            {
-                Debug.Log("Copying MF->MF");
-                Debug.Log("Mesh From " + sMF.mesh.name + " / " + sMF.sharedMesh.name + " (" + (sMF.mesh.triangles.Length / 3).ToString() + " Polygons / " + (sMF.mesh.triangles.Length / 3).ToString() + " Polygons)");
-                dMF.mesh = sMF.mesh;
-                dMF.sharedMesh = sMF.sharedMesh;
-            }
-
-            MeshRenderer sMR = (source.GetComponent<MeshRenderer>() != null) ? source.GetComponent<MeshRenderer>() : source.GetComponentInChildren<MeshRenderer>();
-            if (sMR != null)
-            {
-                Debug.Log("Copying MR->MR");
-                Debug.Log("Material From " + sMR.material.name + " / " + sMR.sharedMaterial.name);
-                Shader shaderSave = dMR.material.shader;  // Shader must be maintained in order for the Stealth mode to work automatically
-                dMR.sharedMaterials = sMR.sharedMaterials;
-                dMR.material.shader = shaderSave;
-            }
-
-            SkinnedMeshRenderer sSMR = (source.GetComponent<SkinnedMeshRenderer>() != null) ? source.GetComponent<SkinnedMeshRenderer>() : source.GetComponentInChildren<SkinnedMeshRenderer>();
-            if (sSMR != null)
-            {
-                Debug.Log("Copying SMR->MF/MR");
-                Debug.Log("Mesh From " + sSMR.sharedMesh.name + " (" + (sSMR.sharedMesh.triangles.Length / 3).ToString() + " Polygons)");
-                dMF.sharedMesh = sSMR.sharedMesh;
-                Shader shaderSave = dMR.material.shader; // Shader must be maintained in order for the Stealth mode to work automatically
-                Debug.Log("Material From " + sSMR.material.name);
-                dMR.material = sSMR.material;
-                dMR.material.shader = shaderSave;
-            }
-
-            return true;
-        }
-
         public class AssetInfo
         {
             public string kind { get; set; } = "";
@@ -334,6 +277,7 @@ namespace LordAshes
             public string tags { get; set; } = "";
             public string id { get; set; } = "";
             public string location { get; set; } = "";
+            public string code { get; set; } = "";
         }
 
         public enum AutomaticAssetsSeekSetting
