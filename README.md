@@ -5,6 +5,14 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 
 ## Change Log
 
+2.0.0: Rewrite to support creature, effect, aura, transformation and audio directly in EAR without dependency on CMP.
+
+2.0.0: Exposed a lot more properties in the info.txt file. Some of these are preparation for future use.
+
+2.0.0: Slab support has been temporarily removed. Will be added back in next revision.
+
+1.7.0: Added support for slabs. Doesn't support custom tiles yet but now you can pull stabs out from the library.
+
 1.6.0: Reworked visibility code based on Hollo's TS base implementation
 
 1.5.0: Added code to implement visibility for EAR spawned assets
@@ -33,41 +41,76 @@ using the TS library like any core TS assets. Supports multiple settings for cus
 Use R2ModMan or similar installer to install this plugin. Set the desired setting using the R2ModMan config for the plugin or
 keep the default settings.
 
-Optional: If you want to be able to do CMP Integration (transform existing minis using the TS asset library) then you will need
-          to install the following plugins: LordAshes-StatMessaging and LordAshes-CustomMiniPlugin. If these plugins are not
-		  installed, EAR will as normal but with no CMP integration functionality.
-
 ## Usage
 
-There are 2 application modes: New Mini and CMP Integration
+There are 4 different asset types: Creature, Effect, Aura, Audio plus Transformation.
+
+There are 10 different hot keys: Animations 1 to 7, Prompt Animation, Audion Play, Stop.
+
+There are 2 different application modes: By Asset and Override.
+
 There are 3 different usage modes: Full Seek, New Assets Only, and Manual.
+
 There are 4 different grouping modes: Custom, List Only, Core Only, Single Folder.
 
-### Application Mode: New Mini
+There are 2 different styles of audio assets.
 
-In this mode the user click on a library selection, the corresponding asset will be picked up and can be dropped on the board
-one or more tiles. This is the same action as one would usually bring out core assets from the library.
+### Asset Types
 
-### Application Mode: Transform Mini
++----------------+-----------------------------------+----------+-------------+--------------+
+| Type           | Description                       |  Shader  | Can Stealth | Transparency |
++----------------+-----------------------------------+----------+-------------+--------------+
+| Creature       | Creates a new mini                |    TS    |     Yes     |      No      |
++----------------+----------------------------------------------+----------------------------+
+| Effect         | Creates a new mini                |    AB    |     No      |      Yes     |
++----------------+----------------------------------------------+----------------------------+
+| Aura           | Attaches new mini to current mini |    AB    |     No      |      Yes     |
++----------------+----------------------------------------------+----------------------------+
+| Audio          | Creates a new stealthed mini      |    TS    |     Yes     |      No      |
++----------------+----------------------------------------------+----------------------------+
+| Transformation | Replaces current mini with new    |    TS    |     Yes     |      No      |
++----------------+----------------------------------------------+----------------------------+
 
-In this mode the selected library transformation, aura or effect will be applied to selected mini. Thus first a mini needs to
-be selected and then a transformation, aura or effect can be selected from the library. This functionality will only work if the
-optional StatMessaging plugin and CMP are installed. Transformation, aura and effect groups in the library have a "(CMP)" after
-them to indicated that they are only available if CMP integration is installed.
+### Demo Assets
 
-Normally the Kind setting in the asset's bundle is used to determine which kind of asset it is: Character, Transformation, Aura
-or Effect. However, EAR also looks at the location of the file and looks for Transformation, Aura or Effect in the full location
-of the file.
+Under "Human" you will find an "Assasin" (icons with brown leather hooded outfit). The assasin has animations and poses.
+The assasin starts in animation 1. The first two animations are very subtle and may look like poses. The third animation
+is a static ready pose. Animation 4 is a kick attack. Animation 5 is a spell attack and animation 6 is a death animation.
+You can access each one of these by selecting the assasin on the board and pressing LEFT ALT plus 1 thru 6.
+The assasin also has a battle cry which you can play with LEFT ALT+9.
 
-Character: The mini is spawned like any other core TS mini. Drop one or more copies of the mini on the board.
-Transformation: The minis appearance is replaced with the selected content. Mesh and materials only. Supports hide and fly modes.
-Aura: The selected aura is added to the selected mini. Aura does not support hide and fly mode.
-Effect: The selected mini apperance is replaced by the selected content. Similar to Transformation but supports effects but does
-        not support hide and fly mode.
-		
-For CMP users:
+Under "Tavern Songs" you will find "Cockerel". When you place this asset on the board it will look like a speaker. You
+can hide it using Stealth so that your player's don't see it. When selected on the board, you can press LEFT ALT + 9 to
+play the music. It is a tavern song about a rooster. If you think the song is about anything else, you have a dirty mind.
+You can use LEFT ALT + 0 to stop playing the music.
 
-Transformation => CMP Mini Transformation, Aura => CMP Effect, Effect => CMP Mini Transformation to blank + CMP Effect.
+### Keyboard Hotkeys
+
+LEFT ALT + 1 = Play animation called "Anim01" if the asset has such an animation.
+LEFT ALT + 2 = Play animation called "Anim02" if the asset has such an animation.
+LEFT ALT + 3 = Play animation called "Anim03" if the asset has such an animation.
+LEFT ALT + 4 = Play animation called "Anim04" if the asset has such an animation.
+LEFT ALT + 5 = Play animation called "Anim05" if the asset has such an animation.
+LEFT ALT + 6 = Play animation called "Anim06" if the asset has such an animation.
+LEFT ALT + 7 = Play animation called "Anim07" if the asset has such an animation.
+LEFT ALT + 8 = Prompt for an animation name and then play that animation if the asset has it.
+LEFT ALT + 9 = Play audio if the asset has audio associated with it.
+LEFT ALT + 0 = Stop playing animations and audio.
+
+### Application Mode: By Asset
+
+In this mode, the type of asset (Creature, Effect, Aura, Audio, Transformation) is determine by the asset's info.txt file.
+If the asset does not have such a file, the asset is assumed to be a Creature asset.
+
+### Application Mode: Overide
+
+In this mode, the user specifies how the asset should be treated (i.e. what type it should be treated as) by holding a specific key
+when selecting the asset from the library.
+
+LEFT SHIFT = The asset will be treated as a Creature regardless of the info.txt information (if present)
+RIGHT SHIFT = The asset will be treated as a Effect regardless of the info.txt information (if present)
+ANY CTRL  = The asset will be treated as a Transformation regardless of the info.txt information (if present)
+ANY ALT = The asset will be treated as a Aura regardless of the info.txt information (if present)
 
 
 ### Usage Mode: Full Seek
@@ -100,15 +143,7 @@ This mode does not need any manual interaction. Once TS is started, the assets w
 
 This mode is used if you don't want Extra Assets Registration plugin to look for assets on start-up. It will only register assets
 which it had previous found. In this mode, the user needs to manually tell Extra Assets Registration plugin to look for new assets
-by using the keyboard shortcut (default RCTRL+A for assets). Currently, doing this requires a restart of TS in order for the new
-found assets to be available. So the steps are:
-
-1. Start TS
-2. Trigger the Manual Seek. Wait for it to complete.
-3. Restart TS
-
-This mode does not need any manual interaction to use the collected assets. Only requesting the plugin to update the list of assets
-required the above manual interaction.
+by using the keyboard shortcut (default RCTRL+A for assets). 
 
 
 ### Grouping Mode: Custom (Default Grouping)
@@ -162,18 +197,42 @@ An assetBundle can also include a info.txt file which contains a JSON string of 
 while the content is JSON, the extension of the file remains txt. The conent should follow the format:
 
 {
+  "name": "Assasin",
   "kind": "Creature",
-  "groupName": "Fey",
-  "description": "Rogue fairy",
-  "name": "Trix",
-  "tags": "Tiny, Fairy"
+  "groupName": "Human",
+  "description": "Assasin",
+  "tags": "Human,Rogue,Assasin",
+  "author": "Lord Ashes",
+  "version": "1.0",
+  "comment": "Maximo source",
+  "size": 1.0,
+  "assetBase": "Default",
+  "locations":
+  {
+    "head": "0.0,0.7,0.0",
+    "hit": "0.0,0.5,0.0",
+    "spell": "0.0,0.5,0.0",
+    "torch": "0.0,0.5,0.0"
+  },
+  "meshAdjustments":
+  {
+    "size": "1.0,1.0,1.0",
+    "rotationOffset": "0.0,0.0,0.0",
+    "positionOffset": "0.0,0.0,0.0"
+  }
 }
 
+Where "name" is the name of the asset. See Note 2 below.
 Where "kind" is always "Creature" at this point. This will be used in the future for things like Props and Tiles.
 Where "groupName" is the name of the group in the library that contains the asset. See Note 1 below.
 Where "description" is a description of the asset. Not currently used. To be used in the future. 
-Where "name" is the name of the asset. See Note 2 below.
 Where "tags" is a list of tags associated with the asset. Not currently used. To be used in the future. 
+
+Where "author", "version", and "comment" are user strings ignored by EAR.
+Where "size" determine the GM Tools Size of the asset (e.g. 0.5, 1, 2, 4). *For future use.
+Where "assetBase" determines the "recommended" base setting for the asset (None, Default or a base file). *For future use.
+Where "locations" defines the offset for various points on the asset. *For future use.
+Where "meshAdjustments" defines the mesh size adjustments and mesh offsets.
 
 Note 1: Depending on the Extra Asset Registration plugin group settings (see above) the groupName may be ignored
         when determining the folder in which the asset will be placed in the library. In such case, as noted above,
@@ -181,8 +240,21 @@ Note 1: Depending on the Extra Asset Registration plugin group settings (see abo
 		
 Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
 
-## Update Setting
+### Making Audio Assets
 
-A setting in the configuration for this plugin in R2ModMan has been added. This setting indicates how many update cycles
-are skipped before resyncing visibility. The default is 10. Decreasing this number puts a larger stress on the CPU but
-updates visibility faster. Increasing the number lowers the stress on the CPU but visibility make take longer to update.
+There are two different styles of audio assets each of which have two options for a total of four combinations.
+
+#### Audio Asset Vs Creature Asset
+
+If an asset is of the kind Audio then, when selected, it will be automatically spawned hidden (stealth mode) but it will
+always spawn to position 0,0,0 (from where the GM can move it if desired). If an audio asset is of the type Creature then
+the audio asset will not automatically start hidden but the GM will be able to place it instead of having it spawn at the
+default location of 0,0,0. The GM can then manually hide the asset. The asset can have any shape (just like a creature)
+but I recommend a speaker shape (or similar) which clearly identifies it as a audio asset.
+
+To create an audio asset, in Unity add a Audio Source component to the asset and provide it with a audio file for the
+audio source. No other components need to be added to make the audio work. This, however, is where the second option
+applies. The audio source has a checkbox to "play on wake". If this checkbox is checked, the audio will play as soon as
+the asset is selected from the library (even before it is placed on the board). Once placed on the board, the audio
+restarts. If the checkbox is not checked, the audio will not start on its own and must be started manually with the
+LEFT ALT+9 keyboard shortcut. 
