@@ -254,6 +254,8 @@ the audio asset will not automatically start hidden but the GM will be able to p
 default location of 0,0,0. The GM can then manually hide the asset. The asset can have any shape (just like a creature)
 but I recommend a speaker shape (or similar) which clearly identifies it as a audio asset.
 
+#### Auto Play Vs Manual Play
+
 To create an audio asset, in Unity add a Audio Source component to the asset and provide it with a audio file for the
 audio source. No other components need to be added to make the audio work. This, however, is where the second option
 applies. The audio source has a checkbox to "play on wake". If this checkbox is checked, the audio will play as soon as
