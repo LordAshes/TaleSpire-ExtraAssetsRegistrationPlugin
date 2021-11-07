@@ -71,6 +71,25 @@ namespace LordAshes
                 return true;
             }
 
+            /// <summary>
+            /// Method to get creature name in case plugin is being used with Stat Messaging
+            /// </summary>
+            /// <param name="asset"></param>
+            /// <returns></returns>
+            public static string GetCreatureName(CreatureBoardAsset asset)
+            {
+                string name = asset.Creature.Name;
+                if (name.ToUpper().IndexOf("<SIZE=0") > 0) { name = name.Substring(0, name.ToUpper().IndexOf("<SIZE=0")); }
+                return name;
+            }
+
+            public static Vector3 GetV3(string commaDelimited)
+            {
+                string[] axis = commaDelimited.Split(',');
+                return new Vector3(float.Parse(axis[0]), float.Parse(axis[1]), float.Parse(axis[2]));
+            }
+
+
             private static TextMeshProUGUI GetUITextByName(string name)
             {
                 TextMeshProUGUI[] texts = UnityEngine.Object.FindObjectsOfType<TextMeshProUGUI>();
