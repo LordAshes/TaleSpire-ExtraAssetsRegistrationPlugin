@@ -10,7 +10,7 @@ namespace LordAshes
 {
     public partial class ExtraAssetsRegistrationPlugin : BaseUnityPlugin
     {
-        public static class Data
+        public static partial class Data
         {
             public class Locations
             {
@@ -38,7 +38,9 @@ namespace LordAshes
                 public string author { get; set; } = "Anonymous";
                 public string version { get; set; } = "Unversioned";
                 public string comment { get; set; } = "";
+                public float timeToLive { get; set; } = 0f;
                 public float size { get; set; } = 1.0f;
+                public string code { get; set; } = "";
                 public string location { get; set; } = "";
                 public string assetBase { get; set; } = "DEFAULT";
                 public MeshAdjustments mesh { get; set; } = new MeshAdjustments();
