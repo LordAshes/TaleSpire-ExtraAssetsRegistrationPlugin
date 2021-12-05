@@ -180,18 +180,7 @@ namespace LordAshes
                         Data.SlabInfo[] slabs = JsonConvert.DeserializeObject<Data.SlabInfo[]>(asset.code);
                         // Resolve asset code as SlabInfo object
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Slabs [" + System.IO.Path.GetFileName(asset.location) + "]"); }
-                        foreach (Data.SlabInfo slab in slabs)
-                        {
-                            if (BoardSessionManager.Board.PushStringToTsClipboard(slab.code) == PushStringToTsClipboardResult.Success)
-                            {
-                                Copied mostRecentCopied_LocalOnly = BoardSessionManager.Board.GetMostRecentCopied_LocalOnly();
-                                if (mostRecentCopied_LocalOnly != null)
-                                {
-                                    Debug.Log("X:" + slab.position.x + " y:" + slab.position.x + " z:" + slab.position.z + " Slab: " + slab.code);
-                                    BoardSessionManager.Board.PasteCopied(slab.position, 0, 0UL);
-                                }
-                            }
-                        }
+                        Internal.self.StartCoroutine("BuildMultipleSlabs", new object[] { slabs, Internal.delayPerSlab });
                     }
                     catch (Exception)
                     {
@@ -483,6 +472,25 @@ namespace LordAshes
             else
             {
                 Debug.LogWarning("Extra Assets Registration Plugin: Invalid Creature Id Provided To Destroy Asset After Timespan.");
+            }
+        }
+
+        public IEnumerator BuildMultipleSlabs(object[] inputs)
+        {
+            Data.SlabInfo[] slabs = (Data.SlabInfo[])inputs[0];
+            foreach (Data.SlabInfo slab in slabs)
+            {
+                if (BoardSessionManager.Board.PushStringToTsClipboard(slab.code) == PushStringToTsClipboardResult.Success)
+                {
+                    Copied mostRecentCopied_LocalOnly = BoardSessionManager.Board.GetMostRecentCopied_LocalOnly();
+                    if (mostRecentCopied_LocalOnly != null)
+                    {
+                        Debug.Log("Extra Assets Registration Plugin: Placing Slab. X:" + slab.position.x + " y:" + slab.position.x + " z:" + slab.position.z + " Slab: " + slab.code);
+                        BoardSessionManager.Board.PasteCopied(slab.position, 0, 0UL);
+                        Debug.Log("Extra Assets Registration Plugin: Post Slab Placement Delay = " + (float)inputs[1]);
+                        yield return new WaitForSeconds((float)inputs[1]);
+                    }
+                }
             }
         }
 

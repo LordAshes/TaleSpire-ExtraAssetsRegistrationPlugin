@@ -21,7 +21,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.4.1.0";
+        public const string Version = "2.4.2.0";
 
         private static class Internal
         {
@@ -42,8 +42,10 @@ namespace LordAshes
             // Settings
             public static string pluginDirectory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
             public static Data.AutomaticAssetsSeekSetting seekSetting = Data.AutomaticAssetsSeekSetting.newAssetsOnly;
+            
             public static ConfigEntry<KeyboardShortcut> triggerRegistration;
             public static ConfigEntry<KeyboardShortcut> triggerSlabImport;
+            public static ConfigEntry<KeyboardShortcut> triggerManualAuraApplication;
 
             public static float auraSolidifcationDelay = 5f;
 
@@ -54,8 +56,9 @@ namespace LordAshes
             public static DiagnosticSelection showDiagnostics = DiagnosticSelection.none;
 
             public static float delayAuraApplication = 5f;
-            public static KeyboardShortcut triggerManualAuraApplication;
             public static System.Guid subscriptionStatMessaging = System.Guid.Empty;
+
+            public static float delayPerSlab = 0f;
 
             public static string guiMessage = "";
 
@@ -79,7 +82,7 @@ namespace LordAshes
 
             Internal.triggerRegistration = Config.Bind("Keyboard Shortcuts", "Manual Seek For Assets", new KeyboardShortcut(KeyCode.A, KeyCode.RightControl));
             Internal.triggerSlabImport = Config.Bind("Keyboard Shortcuts", "Slab or Multi Slab Importer", new KeyboardShortcut(KeyCode.S, KeyCode.LeftControl));
-            Internal.triggerManualAuraApplication = Config.Bind("Keyboard Shortcuts", "Manual Aura Application Keyboard Shortcut", new KeyboardShortcut(KeyCode.R, KeyCode.RightControl)).Value;
+            Internal.triggerManualAuraApplication = Config.Bind("Keyboard Shortcuts", "Manual Aura Application Keyboard Shortcut", new KeyboardShortcut(KeyCode.R, KeyCode.RightControl));
 
             AssetHandler.Initialize(this, Config.Bind("Settings", "Organization Settings", Data.AssetGroups.custom).Value);
 
@@ -88,6 +91,7 @@ namespace LordAshes
             Internal.baseForCreatures = Config.Bind("Settings", "Base For Creatures", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.baseForEffects = Config.Bind("Settings", "Base For Effects", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.baseForAudio = Config.Bind("Settings", "Base For Audio", Internal.BaseTypeTriState.asPerAsset).Value;
+            Internal.delayPerSlab = Config.Bind("Settings", "Delay Between Slab In Multi Slab Asset", 0).Value;
 
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
 
@@ -160,7 +164,7 @@ namespace LordAshes
                     StatMessaging.SetInfo(LocalClient.SelectedCreatureId, ExtraAssetsRegistrationPlugin.Guid + ".Anim", "");
                     StatMessaging.SetInfo(LocalClient.SelectedCreatureId, ExtraAssetsRegistrationPlugin.Guid + ".Audio", "");
                 }
-                if (Utility.StrictKeyCheck(Internal.triggerManualAuraApplication))
+                if (Utility.StrictKeyCheck(Internal.triggerManualAuraApplication.Value))
                 {
                     StartCoroutine("DisplayMessage", new object[] { "Aura Application Started", 3.0f });
                     StartCoroutine("DelayedAuraApplication", new object[] { 0.1f });
