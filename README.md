@@ -8,6 +8,9 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+2.5.0: If asset has a high and low performance version in the asset bundle, will try to load asset based on the
+       configured graphics capability settings. Default: low performance.
+2.4.2: Added optional delay between pasting slabs of a multi slab asset. Default 0. Set via R2ModMan config.
 2.4.1: Added support for "pasting" multi slab
 2.4.0: Added support for multiple slabs using json Slab file
 2.3.0: Exposes animation via Stat Messaging to other clients
@@ -36,8 +39,11 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 
 ## Install
 
-Use R2ModMan or similar installer to install this plugin. Set the desired setting using the R2ModMan config for the plugin or
-keep the default settings.
+Use R2ModMan or similar installer to install this plugin.
+
+Set the desired setting using the R2ModMan config for the plugin or keep the default settings.
+
+Notice: Default is Low Graphics Capability mode. Switch to High to get high-res/animated assets when available.
 
 
 ## Usage
@@ -85,7 +91,8 @@ Under "Human" you will find an "Assasin" (icons with brown leather hooded outfit
 The assasin starts in animation 1. The first two animations are very subtle and may look like poses. The third animation
 is a static ready pose. Animation 4 is a kick attack. Animation 5 is a spell attack and animation 6 is a death animation.
 You can access each one of these by selecting the assasin on the board and pressing LEFT ALT plus 1 thru 6.
-The assasin also has a battle cry which you can play with LEFT ALT+9.
+The assasin also has a battle cry which you can play with LEFT ALT+9. Plugin must be set to High Graphics Capabilities
+in order to be able to trigger animations. Otherwise the non-animated version of the sample asset is used.
 
 Under "Tavern Songs" you will find "Cockerel". When you place this asset on the board it will look like a speaker. You
 can hide it using Stealth so that your player's don't see it. When selected on the board, you can press LEFT ALT + 9 to
