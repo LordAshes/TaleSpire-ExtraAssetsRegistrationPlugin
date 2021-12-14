@@ -203,10 +203,24 @@ namespace LordAshes
                         // Load from AssetBundle
                         AssetBundle ab = FileAccessPlugin.AssetBundle.Load(asset.location);
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: AB Null? " + (ab == null)); }
-                        model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location));
+                        
+                        if(Internal.graphics==Internal.GraphicsCapabilities.HighPerformance)
+                        {
+                            // Try loading a high res version of the asset if one exists. Default to low res version if a high res version is not available. 
+                            model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location)+"high");
+                            if (model == null) { model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location)); }
+                        }
+                        else // if (Internal.graphics == Internal.GraphicsMode.lowPerformance)
+                        {
+                            // Try loading a low res version of the asset if one exists. Default to high red version if a low res version is not available. 
+                            model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location));
+                            if (model == null) { model = ab.LoadAsset<GameObject>(System.IO.Path.GetFileName(asset.location) + "high"); }
+                        }
+
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Model Null? " + (model == null)); }
                         if(model==null)
                         {
+                            // Prefab in asset bundle does not match asset bundle name. Try getting the first available prefab
                             Debug.LogWarning("Extra Assets Registration Plugin: Improper Asset Bundle detected. Asset Bundle at '" + asset.location + "' doesn't contain '" + System.IO.Path.GetFileName(asset.location) + "'. Trying to load '" + ab.GetAllAssetNames()[0] + "' instead.");
                             model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
                         }
@@ -480,7 +494,8 @@ namespace LordAshes
             Data.SlabInfo[] slabs = (Data.SlabInfo[])inputs[0];
             foreach (Data.SlabInfo slab in slabs)
             {
-                if (BoardSessionManager.Board.PushStringToTsClipboard(slab.code) == PushStringToTsClipboardResult.Success)
+                Copied copied = default(Copied);
+                if (BoardSessionManager.Board.PushStringToTsClipboard(slab.code, 0, slab.code.Length, out copied) == PushStringToTsClipboardResult.Success)
                 {
                     Copied mostRecentCopied_LocalOnly = BoardSessionManager.Board.GetMostRecentCopied_LocalOnly();
                     if (mostRecentCopied_LocalOnly != null)

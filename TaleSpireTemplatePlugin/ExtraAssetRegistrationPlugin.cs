@@ -21,7 +21,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.4.2.0";
+        public const string Version = "2.5.0.0";
 
         private static class Internal
         {
@@ -37,6 +37,12 @@ namespace LordAshes
                 none = 0,
                 low = 1,
                 high = 2
+            }
+
+            public enum GraphicsCapabilities
+            {
+                LowPerformance = 1,
+                HighPerformance = 2
             }
 
             // Settings
@@ -65,6 +71,8 @@ namespace LordAshes
             public static bool subscriptionStarted = false;
 
             public static BaseUnityPlugin self = null;
+
+            public static GraphicsCapabilities graphics = GraphicsCapabilities.LowPerformance;
         }
 
         /// <summary>
@@ -79,6 +87,8 @@ namespace LordAshes
             if (!System.IO.Directory.Exists(Internal.pluginDirectory + "\\cache")) { System.IO.Directory.CreateDirectory(Internal.pluginDirectory + "\\cache"); }
 
             Internal.self = this;
+
+            Internal.graphics = Config.Bind("Settings", "Device Graphics Capabilities", Internal.GraphicsCapabilities.LowPerformance).Value;
 
             Internal.triggerRegistration = Config.Bind("Keyboard Shortcuts", "Manual Seek For Assets", new KeyboardShortcut(KeyCode.A, KeyCode.RightControl));
             Internal.triggerSlabImport = Config.Bind("Keyboard Shortcuts", "Slab or Multi Slab Importer", new KeyboardShortcut(KeyCode.S, KeyCode.LeftControl));
@@ -98,6 +108,8 @@ namespace LordAshes
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
 
             RegisterAssets();
+
+            Utility.PostOnMainPage(this.GetType());
         }
 
         /// <summary>
@@ -318,9 +330,9 @@ namespace LordAshes
 
         private IEnumerator DelayedAuraApplication(object[] inputs)
         {
-            StartCoroutine("DisplayMessage", new object[] { "Preparing Aura Processing System", (float)inputs[0] });
+            StartCoroutine("DisplayMessage", new object[] { "E.A.R.: Preparing Aura Processing System. Using Graphics Mode: "+Internal.graphics.ToString(), (float)inputs[0] });
             yield return new WaitForSeconds((float)inputs[0]);
-            StartCoroutine("DisplayMessage", new object[] { "Aura Processing System Started", 3.0f });
+            StartCoroutine("DisplayMessage", new object[] { "Aura Processing System Started. Using Graphics Mode: "+Internal.graphics.ToString(),3.0f });
             if (Internal.subscriptionStatMessaging != System.Guid.Empty)
             {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Unsubscribing To Aura Stat Messages"); }

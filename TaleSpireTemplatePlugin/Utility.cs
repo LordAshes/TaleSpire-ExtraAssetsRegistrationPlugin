@@ -36,7 +36,7 @@ namespace LordAshes
                                 {
                                     modListText.text += "\n\nMods Currently Installed:\n";
                                 }
-                                modListText.text += "\nLord Ashes' " + bepInPlugin.Name + " - " + bepInPlugin.Version;
+                                modListText.text += "\nLord Ashes' " + bepInPlugin.Name + " - " + bepInPlugin.Version +" (via Hollo's Extra Asset Library)";
                             }
                         }
                     }
