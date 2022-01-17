@@ -8,6 +8,11 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+2.7.0: Preview version of camera filter support.
+2.7.0: Added foundation support for asset variants. To be added in an upcoming version.
+2.7.0: Added more logging during registration step.
+2.6.0: Internal version for testing. Not released.
+2.5.2: Optimized auras application.
 2.5.0: If asset has a high and low performance version in the asset bundle, will try to load asset based on the
        configured graphics capability settings. Default: low performance.
 2.4.2: Added optional delay between pasting slabs of a multi slab asset. Default 0. Set via R2ModMan config.
@@ -71,19 +76,24 @@ LCTRL+S = Slabs Import
 +----------------+-----------------------------------+----------+-------------+--------------+
 | Type           | Description                       |  Shader  | Can Stealth | Transparency |
 +----------------+-----------------------------------+----------+-------------+--------------+
-| Creature       | Creates a new mini                |    TS    |     Yes     |      No      |
+| Creature       | Creates a new mini                |    TS    |     Yes     |      No*     |
 +----------------+----------------------------------------------+----------------------------+
 | Effect         | Creates a new mini                |    AB    |     No      |      Yes     |
 +----------------+----------------------------------------------+----------------------------+
 | Aura           | Attaches new mini to current mini |    AB    |     No      |      Yes     |
 +----------------+----------------------------------------------+----------------------------+
-| Slab           | Places a number of tiles          |    TS    |     No      |      No      |
+| Filter         | Creates a camera attacked mini    |    AB    |     No      |      Yes     |
 +----------------+----------------------------------------------+----------------------------+
-| Audio          | Creates a new stealthed mini      |    TS    |     Yes     |      No      |
+| Slab           | Places a number of tiles          |    TS    |     No      |      No*     |
 +----------------+----------------------------------------------+----------------------------+
-| Transformation | Replaces current mini with new    |    TS    |     Yes     |      No      |
+| Audio          | Creates a new stealthed mini      |    TS    |     Yes     |      No*     |
 +----------------+----------------------------------------------+----------------------------+
+| Transformation | Replaces current mini with new    |    TS    |     Yes     |      No*     |
++----------------+----------------------------------------------+----------------------------+
+
+* = No transparency from texture file. However, the whole material can be made transparent.
 ```
+
 
 ### Demo Assets
 
@@ -98,6 +108,9 @@ Under "Tavern Songs" you will find "Cockerel". When you place this asset on the 
 can hide it using Stealth so that your player's don't see it. When selected on the board, you can press LEFT ALT + 9 to
 play the music. It is a tavern song about a rooster. If you think the song is about anything else, you have a dirty mind.
 You can use LEFT ALT + 0 to stop playing the music.
+
+Under "Camera Filters" you will find "Blood Filter". When you select this asset, it will add the corresponding camera filter
+to the camera. The camera filter will move with the camera.
 
 Under the Tile section of the library, under the "Custom Content" group you will find a "Temple01" sample slab.
 
@@ -382,3 +395,11 @@ applies. The audio source has a checkbox to "play on wake". If this checkbox is 
 the asset is selected from the library (even before it is placed on the board). Once placed on the board, the audio
 restarts. If the checkbox is not checked, the audio will not start on its own and must be started manually with the
 LEFT ALT+9 keyboard shortcut. 
+
+## Limitations
+
+This is a camera filters preview version only. It is intended for users to be able to apply camera filters locally in order
+to start making camera filters. However, currently filters have the following limitations:
+
+1. There is no way currently to remove camera filters.
+2. Cemara filters are applied locally only and request to other players are not sent.
