@@ -9,6 +9,7 @@ using ExtraAssetsLibrary;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HarmonyLib;
 
 namespace LordAshes
 {
@@ -21,7 +22,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.5.0.0";
+        public const string Version = "2.7.0.0";
 
         private static class Internal
         {
@@ -67,10 +68,14 @@ namespace LordAshes
             public static float delayPerSlab = 0f;
 
             public static string guiMessage = "";
+            public static Data.AssetInfo menuOpenSubselection = null;
+            public static Vector2 menuOpenSubselectionPos = Vector2.zero;
 
             public static bool subscriptionStarted = false;
 
             public static BaseUnityPlugin self = null;
+
+            public static string fractionalCharacter = ".";
 
             public static GraphicsCapabilities graphics = GraphicsCapabilities.LowPerformance;
         }
@@ -81,7 +86,6 @@ namespace LordAshes
         /// </summary>
         void Awake()
         {
-            // Not required but good idea to log this state for troubleshooting purpose
             UnityEngine.Debug.Log("Extra Assets Registration Plugin: Is Active.");
 
             if (!System.IO.Directory.Exists(Internal.pluginDirectory + "\\cache")) { System.IO.Directory.CreateDirectory(Internal.pluginDirectory + "\\cache"); }
@@ -103,11 +107,16 @@ namespace LordAshes
             Internal.baseForAudio = Config.Bind("Settings", "Base For Audio", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.delayPerSlab = Config.Bind("Settings", "Delay Between Slab In Multi Slab Asset", 0).Value;
 
+            Internal.fractionalCharacter = Config.Bind("Settings", "Fractional Character", ".").Value;
+
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
 
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
 
-            RegisterAssets();
+            var harmony = new Harmony(Guid);
+            harmony.PatchAll();
+
+            StartCoroutine("RegisterAssets");
 
             Utility.PostOnMainPage(this.GetType());
         }
@@ -147,7 +156,7 @@ namespace LordAshes
                     code = DirtyClipboardHelper.PullFromClipboard()
                 };
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Slab(s) Importer Code...\r\n"+asset.code); }
-                AssetHandler.CreateAsset(asset, NGuid.Empty);
+                AssetHandler.CreateAsset(asset);
             }
 
             if (Utility.isBoardLoaded())
@@ -181,6 +190,55 @@ namespace LordAshes
                     StartCoroutine("DisplayMessage", new object[] { "Aura Application Started", 3.0f });
                     StartCoroutine("DelayedAuraApplication", new object[] { 0.1f });
                 }
+
+                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.M, KeyCode.RightControl)))
+                {
+                    CreatureBoardAsset model;
+                    CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out model);
+                    if (model != null)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying 'Taleweaver/CreatureShader' Shader"); }
+                        List<Renderer> renderers = new List<Renderer>();
+                        renderers.AddRange(model.GetComponents<Renderer>());
+                        renderers.AddRange(model.GetComponentsInChildren<Renderer>());
+                        foreach (Renderer renderer in renderers)
+                        {
+                            renderer.material.shader = Shader.Find("Taleweaver/CreatureShader");
+                        }
+                    }
+                }
+                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.N, KeyCode.RightControl)))
+                {
+                    CreatureBoardAsset model;
+                    CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out model);
+                    if (model != null)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying 'Standard' Shader"); }
+                        List<Renderer> renderers = new List<Renderer>();
+                        renderers.AddRange(model.GetComponents<Renderer>());
+                        renderers.AddRange(model.GetComponentsInChildren<Renderer>());
+                        foreach (Renderer renderer in renderers)
+                        {
+                            renderer.material.shader = Shader.Find("Standard");
+                        }
+                    }
+                }
+                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.B, KeyCode.RightControl)))
+                {
+                    CreatureBoardAsset model;
+                    CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out model);
+                    if (model != null)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying 'Standard' Shader"); }
+                        List<Renderer> renderers = new List<Renderer>();
+                        renderers.AddRange(model.GetComponents<Renderer>());
+                        renderers.AddRange(model.GetComponentsInChildren<Renderer>());
+                        foreach (Renderer renderer in renderers)
+                        {
+                            Debug.Log("Shader: " + renderer.material.shader.name + " : " + renderer.material.shader.GetType() + " : " + renderer.material.shader.ToString());
+                        }
+                    }
+                }
             }
             else
             {
@@ -210,9 +268,25 @@ namespace LordAshes
                 GUI.Label(new Rect(0, 30, 1920, 35), Internal.guiMessage, gs1);
                 GUI.Label(new Rect(0, 32, 1920, 37), Internal.guiMessage, gs2);
             }
+
+            GUIStyle gsss = new GUIStyle();
+            gsss.alignment = TextAnchor.MiddleCenter;
+            gsss.fontSize = 12;
+            gsss.normal.textColor = Color.white;
+            if (Internal.menuOpenSubselection != null)
+            {
+                for(int i = 0; i<Internal.menuOpenSubselection.variants.Length; i++)
+                {
+                    GUI.DrawTexture(new Rect(Internal.menuOpenSubselectionPos.x, Internal.menuOpenSubselectionPos.y + i * 20, 200, 18), Texture2D.grayTexture, ScaleMode.StretchToFill);
+                    if(GUI.Button(new Rect(Internal.menuOpenSubselectionPos.x, Internal.menuOpenSubselectionPos.y + i * 20, 200, 18), Internal.menuOpenSubselection.variants[i], gsss))
+                    {
+                        Internal.menuOpenSubselection.prefabName = Internal.menuOpenSubselection.variants[i];
+                    }
+                }
+            }
         }
 
-        private void RegisterAssets()
+        private IEnumerator RegisterAssets()
         {
             // Get new assets
             bool newAssets = false;
@@ -228,10 +302,12 @@ namespace LordAshes
                     {
                         System.IO.File.Delete(item);
                     }
+                    yield return new WaitForSeconds(0.1f);
                 }
                 // Seek registerable assets
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Getting Registerable Assets"); }
                 newAssets = AssetHandler.GetAssets(ref AssetHandler.AssetsByFileLocation);
+                yield return new WaitForSeconds(0.1f);
             }
 
             // Register Assets
@@ -241,28 +317,25 @@ namespace LordAshes
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Registering [" + asset.location + "] in [" + asset.groupName + "] as [" + asset.id + "] lives of ["+asset.timeToLive+"]"); }
                 try
                 {
-                    ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset()
-                    {
-                        Id = new NGuid(asset.id),
-                        GroupName = asset.groupName,
-                        Name = asset.name,
-                        Description = asset.description,
-                        // Kind = ResolveKind(asset.kind),
-                        CustomKind = ResolveCustomKind(asset.kind),
-                        Icon = FileAccessPlugin.Image.LoadSprite(Internal.pluginDirectory + "cache\\" + asset.id + ".png"),
-                        tags = asset.tags.Split(','),
-                        BaseCallback = (nguid) => AssetHandler.CreateAssetBase(asset, nguid),
-                        ModelCallback = (nguid) => AssetHandler.CreateAsset(asset, nguid),
-                        PostCallback = (nguid, cid) => AssetHandler.LibrarySelectionMiniPlaced(nguid, cid),
-                        DefaultScale = asset.size,
-                        Scale = Utility.GetV3(asset.mesh.size),
-                        TransformOffset = Utility.GetV3(asset.mesh.rotationOffset),
-                        Rotation = Quaternion.Euler(Utility.GetV3(asset.mesh.rotationOffset)),
-                        headPos = Utility.GetV3(asset.locations.head),
-                        hitPos = Utility.GetV3(asset.locations.hit),
-                        spellPos = Utility.GetV3(asset.locations.spell),
-                        torchPos = Utility.GetV3(asset.locations.torch),
-                    };
+                    ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset();
+                    try { extraAsset.Id = new NGuid(asset.id); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set Id"); }
+                    try { extraAsset.GroupName = asset.groupName; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set groupName tro "+asset.groupName); }
+                    try { extraAsset.Name = asset.name; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to "+asset.name); }
+                    try { extraAsset.Description = asset.description; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
+                    try { extraAsset.CustomKind = ResolveCustomKind(asset.kind); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
+                    try { extraAsset.Icon = FileAccessPlugin.Image.LoadSprite(Internal.pluginDirectory + "cache\\" + asset.id + ".png"); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set icon"); }
+                    try { extraAsset.tags = asset.tags.Split(','); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set tags to " + asset.tags); }
+                    try { extraAsset.BaseCallback = (nguid) => AssetHandler.CreateAssetBase(asset); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set base callback"); }
+                    try { extraAsset.ModelCallback = (nguid) => AssetHandler.CreateAsset(asset); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to model callback"); }
+                    try { extraAsset.PostCallback = (nguid, cid) => AssetHandler.LibrarySelectionMiniPlaced(nguid, cid); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to post callback"); }
+                    try { extraAsset.DefaultScale = asset.size; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set default scale to " + asset.size.ToString()); }
+                    try { extraAsset.Scale = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.mesh.size)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set scale to " + asset.mesh.size.ToString()); }
+                    try { extraAsset.TransformOffset = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.mesh.rotationOffset)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set position to " + asset.mesh.rotationOffset.ToString()); }
+                    try { extraAsset.Rotation = Quaternion.Euler(Utility.GetV3(asset.mesh.rotationOffset)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set rotation to " + asset.mesh.rotationOffset.ToString()); }
+                    try { extraAsset.headPos = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.locations.head)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set head location to " + asset.locations.head.ToString()); }
+                    try { extraAsset.hitPos = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.locations.hit)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set hit location to " + asset.locations.hit.ToString()); }
+                    try { extraAsset.spellPos = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.locations.spell)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to spell location to " + asset.locations.spell.ToString()); }
+                    try { extraAsset.torchPos = Utility.GetV3(AssetHandler.RectifyToLocalFormat(asset.locations.torch)); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to torch location to " + asset.locations.torch.ToString()); }
                     ExtraAssetPlugin.AddAsset(extraAsset);
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high)
                     {
@@ -288,17 +361,21 @@ namespace LordAshes
                         Debug.Log("Extra Assets Registration Plugin: Torch: " + extraAsset.torchPos.ToString());
                     }
                 }
-                catch (Exception)
+                catch (Exception x)
                 {
                     Debug.LogWarning("Extra Assets Registration Plugin: Failed To Register [" + System.IO.Path.GetFileName(asset.location) + "]");
+                    Debug.LogException(x);
                 }
+                yield return new WaitForSeconds(0.1f);
             }
 
             // Write out new AssetInfo cache file
             if (newAssets)
             {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Updating Asset Cache File"); }
-                FileAccessPlugin.File.WriteAllText(Internal.pluginDirectory + "cache\\AssetInfo.cache", "  " + JsonConvert.SerializeObject(AssetHandler.AssetsByFileLocation.Values.ToArray<Data.AssetInfo>(), Formatting.Indented));
+                string json = JsonConvert.SerializeObject(AssetHandler.AssetsByFileLocation.Values.ToArray<Data.AssetInfo>(), Formatting.Indented);
+                AssetHandler.RectifyToStorageFormat(json);
+                FileAccessPlugin.File.WriteAllText(Internal.pluginDirectory + "cache\\AssetInfo.cache", json);
             }
         }
 
@@ -321,18 +398,19 @@ namespace LordAshes
         {
             foreach (ExtraAssetsLibrary.DTO.CustomEntryKind option in (ExtraAssetsLibrary.DTO.CustomEntryKind[])Enum.GetValues(typeof(ExtraAssetsLibrary.DTO.CustomEntryKind)))
             {
-                // if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Identifying CustomKind '" + kind.ToUpper() + "'/'"+ kind.ToUpper() + "S'. Comparing To '" + option.ToString().ToUpper() + "'"); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Identifying CustomKind '" + kind.ToUpper() + "'/'"+ kind.ToUpper() + "S'. Comparing To '" + option.ToString().ToUpper() + "'"); }
+                if (kind.ToUpper() == "FILTER") { return ExtraAssetsLibrary.DTO.CustomEntryKind.Creature; }
                 if (kind.ToUpper() == option.ToString().ToUpper()) { return option; }
-                if (kind.ToUpper().Substring(0,kind.Length-1) == option.ToString().ToUpper()) { return option; }
+                if (kind.ToUpper()+"S" == option.ToString().ToUpper()) { return option; }
             }
             return ExtraAssetsLibrary.DTO.CustomEntryKind.Creature;
         }
 
         private IEnumerator DelayedAuraApplication(object[] inputs)
         {
-            StartCoroutine("DisplayMessage", new object[] { "E.A.R.: Preparing Aura Processing System. Using Graphics Mode: "+Internal.graphics.ToString(), (float)inputs[0] });
+            StartCoroutine("DisplayMessage", new object[] { "E.A.R.: Preparing Aura Processing System. Using Graphics Mode: " + Internal.graphics.ToString(), (float)inputs[0] });
             yield return new WaitForSeconds((float)inputs[0]);
-            StartCoroutine("DisplayMessage", new object[] { "Aura Processing System Started. Using Graphics Mode: "+Internal.graphics.ToString(),3.0f });
+            StartCoroutine("DisplayMessage", new object[] { "E.A.R.: Aura Processing System Started. Using Graphics Mode: " + Internal.graphics.ToString(),3.0f });
             if (Internal.subscriptionStatMessaging != System.Guid.Empty)
             {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Unsubscribing To Aura Stat Messages"); }
@@ -344,7 +422,6 @@ namespace LordAshes
             {
                 List<StatMessaging.Change> changes = new List<StatMessaging.Change>();
                 string json = asset.Creature.Name.Substring(asset.Creature.Name.IndexOf(">") + 1);
-                Debug.Log("Extra Assets Registration Plugin: " + json);
                 Dictionary<string, string> keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                 foreach (KeyValuePair<string, string> entry in keyValuePairs)
                 {

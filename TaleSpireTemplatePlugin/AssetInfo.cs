@@ -29,18 +29,21 @@ namespace LordAshes
 
             public class AssetInfo
             {
+                public string id { get; set; } = "";
+                public string name { get; set; } = "";
                 public string kind { get; set; } = "";
                 public string groupName { get; set; } = "";
                 public string description { get; set; } = "";
-                public string name { get; set; } = "";
                 public string tags { get; set; } = "";
-                public string id { get; set; } = "";
+                public string[] variants { get; set; } = null;
+                public string prefabName { get; set; } = "";
                 public string author { get; set; } = "Anonymous";
                 public string version { get; set; } = "Unversioned";
                 public string comment { get; set; } = "";
                 public float timeToLive { get; set; } = 0f;
                 public float size { get; set; } = 1.0f;
                 public string code { get; set; } = "";
+                public bool global { get; set; } = true;
                 public string location { get; set; } = "";
                 public string assetBase { get; set; } = "DEFAULT";
                 public MeshAdjustments mesh { get; set; } = new MeshAdjustments();

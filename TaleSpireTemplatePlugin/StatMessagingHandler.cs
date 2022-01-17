@@ -24,7 +24,7 @@ namespace LordAshes
                     {
                         if (change.action != StatMessaging.ChangeType.removed)
                         {
-                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating aura reqeust"); }
+                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating aura request"); }
                             CreateAura(change.cid, change.key.Substring(change.key.IndexOf(".Aura.")+".Aura.".Length), new NGuid(change.value));
                         }
                         else
@@ -72,26 +72,41 @@ namespace LordAshes
             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating aura"); }
             CreatureBoardAsset asset;
             CreaturePresenter.TryGetAsset(cid, out asset);
-            if (asset != null)
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Seeking NGuid match"); }
+            foreach (Data.AssetInfo assetInfo in ExtraAssetsRegistrationPlugin.AssetHandler.AssetsByFileLocation.Values)
             {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Seeking NGuid match"); }
-                foreach (Data.AssetInfo assetInfo in ExtraAssetsRegistrationPlugin.AssetHandler.AssetsByFileLocation.Values)
+                if (assetInfo.id == nguid.ToString())
                 {
-                    if (assetInfo.id == nguid.ToString())
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Found NGuid match"); }
+                    if (GameObject.Find("CustomAura:" + cid.ToString() + "." + auraName))
                     {
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Found NGuid match"); }
-                        if (GameObject.Find("CustomAura:" + cid.ToString() + "." + auraName)) 
-                        {
-                            DestroyAura(cid, auraName); 
-                        }
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating '" + auraName + "' aura on "+cid); }
-                        GameObject prefab = ExtraAssetsRegistrationPlugin.AssetHandler.CreateAsset(assetInfo, nguid);
-                        GameObject model = GameObject.Instantiate(prefab);
+                        DestroyAura(cid, auraName);
+                    }
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating '" + auraName + "' aura on " + cid.ToString()); }
+                    assetInfo.kind = "AURA";
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Getting prefab"); }
+                    GameObject prefab = ExtraAssetsRegistrationPlugin.AssetHandler.CreateAsset(assetInfo);
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Instancing model"); }
+                    GameObject model = GameObject.Instantiate(prefab);
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Destroying prefab"); }
+                    GameObject.Destroy(prefab);
+                    if (asset != null)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying aura to mini"); }
                         model.transform.position = asset.BaseLoader.LoadedAsset.transform.position;
+                        model.transform.eulerAngles = new Vector3(0f, asset.BaseLoader.LoadedAsset.transform.eulerAngles.y, 0f);
                         model.transform.SetParent(asset.BaseLoader.LoadedAsset.transform);
                         model.name = "CustomAura:" + cid.ToString() + "." + auraName;
-                        break;
                     }
+                    else
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying aura to camera"); }
+                        model.transform.position = Camera.main.transform.position;
+                        model.transform.eulerAngles = new Vector3(0f, Camera.main.transform.eulerAngles.y, 0f);
+                        model.transform.SetParent(Camera.main.transform);
+                        model.name = "CustomAura:" + cid.ToString() + "." + auraName;
+                    }
+                    break;
                 }
             }
         }
@@ -155,10 +170,31 @@ namespace LordAshes
                     int animIndex = -1;
                     if (int.TryParse(animName, out animIndex))
                     {
-                        animName = (new List<AnimationState>(animation.Cast<AnimationState>()))[animIndex-1].name;
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Animation " + animIndex + " Is " + animName); }
+                        List<AnimationState> anims = (new List<AnimationState>(animation.Cast<AnimationState>()));
+                        animIndex--;
+                        if (animIndex >= 0 && animIndex < anims.Count)
+                        {
+                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high)
+                            {
+                                for (int a = 0; a < anims.Count; a++)
+                                {
+                                    Debug.Log("Extra Assets Registration Plugin: Animation " + (a + 1) + " is " + anims[a].name);
+                                }
+                            }
+                            animName = anims[animIndex].name;
+                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Playing Animation " + animName); }
+                        }
+                        else
+                        {
+                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Animation " + (animIndex + 1) + " Is Not Defined"); }
+                            return;
+                        }
                     }
                     animation.Play(animName);
+                }
+                else
+                {
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: The Selected Asset Has Not Animations"); }
                 }
             }
         }
