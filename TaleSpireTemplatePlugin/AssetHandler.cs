@@ -338,7 +338,7 @@ namespace LordAshes
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
-                if (mode == "CREATURE" || mode == "EFFECT")
+                if (mode == "CREATURE" || mode == "EFFECT" || mode == "TILE" || mode == "PROP")
                 {
                     // Let Core TS spawn new asset
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: " + assetInfo.kind + " Mode"); }
@@ -353,8 +353,16 @@ namespace LordAshes
                 else if (mode == "FILTER")
                 {
                     // Spawn filter
-                    CreatureGuid cid = SpawnCreature(assetInfo, Vector3.zero, Vector3.zero, true);
-                    Internal.self.StartCoroutine("AttachFilterToCamera", new object[] { cid, assetInfo });
+                    if (GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + AssetsByFileLocation[assetInfo.location].prefabName) == null)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning Camera Filter"); }
+                        CreateAura(CreatureGuid.Empty, AssetsByFileLocation[assetInfo.location].prefabName, nguid);
+                    }
+                    else
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Removing Camera Filter"); }
+                        GameObject.Destroy(GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + AssetsByFileLocation[assetInfo.location].prefabName));
+                    }
                 }
                 else if (asset != null && mode == "TRANSFORMATION")
                 {
@@ -411,7 +419,7 @@ namespace LordAshes
                 try
                 {
                     NGuid transformNguid = new NGuid(asset.id);
-                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Content " + asset.location + " has Nguid = " + transformNguid.ToString()); }
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Content " + asset.location + " has Nguid = " + transformNguid.ToString()); }
                     creatureDataV1 = new CreatureDataV1(transformNguid);
                     creatureDataV1.CreatureId = new CreatureGuid(new Bounce.Unmanaged.NGuid(System.Guid.NewGuid()));
 
@@ -562,30 +570,6 @@ namespace LordAshes
                         yield return new WaitForSeconds((float)inputs[1]);
                     }
                 }
-            }
-        }
-
-        public IEnumerator AttachFilterToCamera(object[] inputs)
-        {
-            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Waiting For Camera Filter To Be Created."); }
-            yield return new WaitForSeconds(1.0f);
-            CreatureGuid cid = (CreatureGuid)inputs[0];
-            Data.AssetInfo assetInfo = (Data.AssetInfo)inputs[1];
-            CreatureBoardAsset asset = null;
-            CreaturePresenter.TryGetAsset(cid, out asset);
-            if (asset != null)
-            {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Obtaining Offsets."); }
-                Vector3 posOffset = new Vector3(float.Parse(assetInfo.mesh.positionOffset.Split(',')[0]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[1]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[2]));
-                Vector3 rotOffset = new Vector3(float.Parse(assetInfo.mesh.rotationOffset.Split(',')[0]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[1]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[2]));
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Attaching Camera Filter."); }
-                asset.CreatureRoot.position = Camera.main.transform.position + posOffset;
-                asset.CreatureRoot.eulerAngles = Camera.main.transform.eulerAngles + rotOffset;
-                asset.CreatureRoot.SetParent(Camera.main.transform);
-            }
-            else
-            {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.LogWarning("Extra Assets Registration Plugin: Camera Filter Not Found."); }
             }
         }
 

@@ -83,7 +83,7 @@ namespace LordAshes
                         DestroyAura(cid, auraName);
                     }
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating '" + auraName + "' aura on " + cid.ToString()); }
-                    assetInfo.kind = "AURA";
+                    // assetInfo.kind = "AURA";
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Getting prefab"); }
                     GameObject prefab = ExtraAssetsRegistrationPlugin.AssetHandler.CreateAsset(assetInfo);
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Instancing model"); }
@@ -96,16 +96,17 @@ namespace LordAshes
                         model.transform.position = asset.BaseLoader.LoadedAsset.transform.position;
                         model.transform.eulerAngles = new Vector3(0f, asset.BaseLoader.LoadedAsset.transform.eulerAngles.y, 0f);
                         model.transform.SetParent(asset.BaseLoader.LoadedAsset.transform);
-                        model.name = "CustomAura:" + cid.ToString() + "." + auraName;
                     }
                     else
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying aura to camera"); }
-                        model.transform.position = Camera.main.transform.position;
-                        model.transform.eulerAngles = new Vector3(0f, Camera.main.transform.eulerAngles.y, 0f);
+                        Vector3 pos = new Vector3(float.Parse(assetInfo.mesh.positionOffset.Split(',')[0]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[1]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[2]));
+                        Vector3 rot = new Vector3(float.Parse(assetInfo.mesh.rotationOffset.Split(',')[0]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[1]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[2]));
+                        model.transform.position = (Camera.main.transform.position + pos);
+                        model.transform.eulerAngles = (Camera.main.transform.eulerAngles + rot);
                         model.transform.SetParent(Camera.main.transform);
-                        model.name = "CustomAura:" + cid.ToString() + "." + auraName;
                     }
+                    model.name = "CustomAura:" + cid.ToString() + "." + auraName;
                     break;
                 }
             }

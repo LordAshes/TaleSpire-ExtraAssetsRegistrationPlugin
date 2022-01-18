@@ -9,7 +9,6 @@ using ExtraAssetsLibrary;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HarmonyLib;
 
 namespace LordAshes
 {
@@ -22,7 +21,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.7.0.0";
+        public const string Version = "2.7.3.0";
 
         private static class Internal
         {
@@ -112,9 +111,6 @@ namespace LordAshes
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
 
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
-
-            var harmony = new Harmony(Guid);
-            harmony.PatchAll();
 
             StartCoroutine("RegisterAssets");
 
