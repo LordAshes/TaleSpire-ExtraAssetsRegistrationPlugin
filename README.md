@@ -8,6 +8,12 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+2.7.3: Removed unused testing patch and removed dependency on Harmony Patching library.
+2.7.3: Updated Blood Filter to use mesh shape instead of material transparency making see through areas fully clear.
+2.7.2: Camera Filetrs support multiple simultaneous filters at once.
+2.7.2: Camera Filters can be removed by re-selecting the camera filter.
+2.7.2: Camera Filters position fixed.
+2.7.1: Added pass-thru for EAL TILE and PROP call-backs. 
 2.7.0: Preview version of camera filter support.
 2.7.0: Added foundation support for asset variants. To be added in an upcoming version.
 2.7.0: Added more logging during registration step.
@@ -109,8 +115,8 @@ can hide it using Stealth so that your player's don't see it. When selected on t
 play the music. It is a tavern song about a rooster. If you think the song is about anything else, you have a dirty mind.
 You can use LEFT ALT + 0 to stop playing the music.
 
-Under "Camera Filters" you will find "Blood Filter". When you select this asset, it will add the corresponding camera filter
-to the camera. The camera filter will move with the camera.
+Under "Camera Filters" you will find "Blood Filter" and "Slime Filter". When you select this asset, it will add the
+corresponding camera filter to the camera. The camera filter will move with the camera.
 
 Under the Tile section of the library, under the "Custom Content" group you will find a "Temple01" sample slab.
 
