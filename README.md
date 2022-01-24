@@ -8,6 +8,9 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset
+2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer)
+2.8.0: Added Encounter spawing (also know as Chain Loader) functionality
 2.7.3: Removed unused testing patch and removed dependency on Harmony Patching library.
 2.7.3: Updated Blood Filter to use mesh shape instead of material transparency making see through areas fully clear.
 2.7.2: Camera Filetrs support multiple simultaneous filters at once.
@@ -119,6 +122,12 @@ Under "Camera Filters" you will find "Blood Filter" and "Slime Filter". When you
 corresponding camera filter to the camera. The camera filter will move with the camera.
 
 Under the Tile section of the library, under the "Custom Content" group you will find a "Temple01" sample slab.
+
+Under "Encounters" is a sample asset which loads 3 assassins, demonstrating the encounter load function.
+
+Under "Fey" is a sample asset which uses sub-selection. When you drop this asset to the board you will have a sub-choice
+of two variations which, in this case, change the colour/texture of the clothing that the fey is wearing.
+
 
 ### Keyboard Hotkeys
 
@@ -266,6 +275,8 @@ while the content is JSON, the extension of the file remains txt. The conent sho
   "groupName": "Human",
   "description": "Assasin",
   "tags": "Human,Rogue,Assasin",
+  "variants": [ "BrownLeather", "BlackLeather" ]
+  "chainLoad": "{VARIANT},0,0,0,0,0,0",
   "author": "Lord Ashes",
   "version": "1.0",
   "comment": "Maximo source",
@@ -293,6 +304,8 @@ Where "kind" is always "Creature" at this point. This will be used in the future
 Where "groupName" is the name of the group in the library that contains the asset. See Note 1 below.
 Where "description" is a description of the asset. Not currently used. To be used in the future. 
 Where "tags" is a list of tags associated with the asset. Not currently used. To be used in the future. 
+Where "variants" a list of strings indicating available variants. Null if no variants offered.
+Where "chainLoad" is used to load multiple assets at once. See Chain Loader section below.
 
 Where "author", "version", and "comment" are user strings ignored by EAR.
 Where "code" can be used to make slabs in Unity. However, the simplified slab creation process avoids the need to create
@@ -402,10 +415,52 @@ the asset is selected from the library (even before it is placed on the board). 
 restarts. If the checkbox is not checked, the audio will not start on its own and must be started manually with the
 LEFT ALT+9 keyboard shortcut. 
 
+### Making Encounter Assets (Using Chain Loader)
+
+Encounter assets consist of a pointer and a list of assets that are to be loaded.
+
+```
+1. Create the pointer (used to place the encounter centre) using the same rules as a Creature asset including setting 
+   the Kind to Creature.
+2. Create the portrait.png file for the encounter icon.
+3. Create the info.txt file for the encounter.
+4. Add the chainLoad property to the info.txt file and fill it in with the assets to be loaded. The conent of this
+   property is a comma delimited string with the asset name, the x offset from the encounter centre, the y offset from
+   the encounter centre, the z offset from the encounter centre, the x rotation offset, y rotation offet and z rotation
+   offset. This is repeated for each asset to be loaded. For example:
+   
+   "chainLoad": "Assasin,0,0,-2,0,0,0,Assasin,-1,0,-1,0,0,0,Assasin,1,0,-1,0,0,0"
+```
+
+### Making Sub-Selection Assets (Using Chain Loader)
+
+Sub-selection leverages the encounter (chainLoader) functionality to allow the creation of asset bunldes which have
+a number of variations of the provdied asset. When the user drops the asset to the board, a sub-selection menu will
+appear asking which variantion the user wants to use. The process for making a sub-selection asset is identical to
+making an encounter asset except the chain loaded is provided with the keyword {VARIANT} instead of the name of the
+asset to be chained and an additiona property, variants, is defined. The variants property is a list of strings which
+define the variant names which are also used as the suffix for prefab name. For example, the asset laWizard01 with the
+variant names "WhiteRobe", "RedRobe" and "BlackRobe" would expect the prefabs laWizard01 (for the pointer) and
+laWizard01WhiteRobe, laWizard01RedRobe and laWizard01BlackRobe for the variant prefabs.
+
+```
+1. Create the pointer (used to place the encounter centre) using the same rules as a Creature asset including setting 
+   the Kind to Creature.
+2. Create the portrait.png file for the encounter icon.
+3. Create the info.txt file for the encounter.
+4. Set the chainLoad property to {VARIANT},0,0,0,0,0,0. While the position and rotation offset is ignored for
+   sub-selection assets (i.e. when using the {VARIANT} keyword) dummy values still need to be present.
+5. Set the variants property to a list of available variant names such as:
+   "variants": [ "WhiteRobe", "RedRobe", "BlackRobe" ]
+
+```
+The keyword {VARIANT} tells the chainLoader to load the asset that is selected from the variants list. Unlike the
+encounter functionality use of the chain loader which can be used to load multiple assets, use of the {VARIANT} keyword
+restricts the chain loader to load only one asset (the one that corresponds to the selected asset).
+
+
 ## Limitations
 
-This is a camera filters preview version only. It is intended for users to be able to apply camera filters locally in order
-to start making camera filters. However, currently filters have the following limitations:
-
-1. There is no way currently to remove camera filters.
-2. Cemara filters are applied locally only and request to other players are not sent.
+Each selection of the an encounter can only be dropped once per library selection. Trying to drop it multiple times
+will produce odd results. This is due to a work-around for a Extra Asset Library bug. When this EAL bug is fixed, it
+should be possible to drop the encounter multiple times per library selection.
