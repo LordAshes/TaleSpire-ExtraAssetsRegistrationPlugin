@@ -9,6 +9,7 @@ using ExtraAssetsLibrary;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HarmonyLib;
 
 namespace LordAshes
 {
@@ -21,7 +22,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.7.3.0";
+        public const string Version = "2.9.0.0";
 
         private static class Internal
         {
@@ -61,6 +62,7 @@ namespace LordAshes
 
             public static DiagnosticSelection showDiagnostics = DiagnosticSelection.none;
 
+            public static float delayChainLoaderSupression = 3f;
             public static float delayAuraApplication = 5f;
             public static System.Guid subscriptionStatMessaging = System.Guid.Empty;
 
@@ -69,6 +71,8 @@ namespace LordAshes
             public static string guiMessage = "";
             public static Data.AssetInfo menuOpenSubselection = null;
             public static Vector2 menuOpenSubselectionPos = Vector2.zero;
+            public static Vector3 menuSubselectionSpawnPos = Vector3.zero;
+            public static Vector3 menuSubselectionSpawnRot = Vector3.zero;
 
             public static bool subscriptionStarted = false;
 
@@ -105,12 +109,17 @@ namespace LordAshes
             Internal.baseForEffects = Config.Bind("Settings", "Base For Effects", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.baseForAudio = Config.Bind("Settings", "Base For Audio", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.delayPerSlab = Config.Bind("Settings", "Delay Between Slab In Multi Slab Asset", 0).Value;
+            Internal.delayChainLoaderSupression = Config.Bind("Settings", "Chain Loader Suppression Delay", 3.0f).Value;
 
             Internal.fractionalCharacter = Config.Bind("Settings", "Fractional Character", ".").Value;
-
+ 
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
 
+
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
+
+            var harmony = new Harmony(Guid);
+            harmony.PatchAll();
 
             StartCoroutine("RegisterAssets");
 
@@ -271,12 +280,20 @@ namespace LordAshes
             gsss.normal.textColor = Color.white;
             if (Internal.menuOpenSubselection != null)
             {
-                for(int i = 0; i<Internal.menuOpenSubselection.variants.Length; i++)
+                for (int i = 0; i<Internal.menuOpenSubselection.variants.Length; i++)
                 {
                     GUI.DrawTexture(new Rect(Internal.menuOpenSubselectionPos.x, Internal.menuOpenSubselectionPos.y + i * 20, 200, 18), Texture2D.grayTexture, ScaleMode.StretchToFill);
                     if(GUI.Button(new Rect(Internal.menuOpenSubselectionPos.x, Internal.menuOpenSubselectionPos.y + i * 20, 200, 18), Internal.menuOpenSubselection.variants[i], gsss))
                     {
-                        Internal.menuOpenSubselection.prefabName = Internal.menuOpenSubselection.variants[i];
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Sub-Selection Spawning "+ Internal.menuOpenSubselection.name + " ("+Internal.menuOpenSubselection.variants[i]+")"); }
+                        NGuid nguid = AssetHandler.FindAssetId(Internal.menuOpenSubselection.name + " ("+Internal.menuOpenSubselection.variants[i]+")");
+                        AssetHandler.SpawnCreature(nguid, Internal.menuSubselectionSpawnPos, Internal.menuSubselectionSpawnRot, false);
+                        StartCoroutine("SupressChainLoad");
+                        CreatureBoardAsset asset;
+                        CreaturePresenter.TryGetAsset(new CreatureGuid(Internal.menuOpenSubselection.comment), out asset);
+                        if (asset != null) { asset.RequestDelete(); }
+                        Internal.menuOpenSubselection = null;
+                        break;
                     }
                 }
             }
@@ -310,13 +327,13 @@ namespace LordAshes
             ExtraAssetsLibrary.ExtraAssetPlugin.CoreAssetPrefixCallbacks.Add(ExtraAssetsRegistrationPlugin.Guid, (nguid, kind) => AssetHandler.LibrarySelectionMade(nguid, kind));
             foreach (Data.AssetInfo asset in AssetHandler.AssetsByFileLocation.Values)
             {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Registering [" + asset.location + "] in [" + asset.groupName + "] as [" + asset.id + "] lives of ["+asset.timeToLive+"]"); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Registering [" + asset.location + "] in [" + asset.groupName + "] as [" + asset.id + "] lives of [" + asset.timeToLive + "]"); }
                 try
                 {
                     ExtraAssetsLibrary.DTO.Asset extraAsset = new ExtraAssetsLibrary.DTO.Asset();
                     try { extraAsset.Id = new NGuid(asset.id); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set Id"); }
-                    try { extraAsset.GroupName = asset.groupName; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set groupName tro "+asset.groupName); }
-                    try { extraAsset.Name = asset.name; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to "+asset.name); }
+                    try { extraAsset.GroupName = asset.groupName; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set groupName tro " + asset.groupName); }
+                    try { extraAsset.Name = asset.name; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
                     try { extraAsset.Description = asset.description; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
                     try { extraAsset.CustomKind = ResolveCustomKind(asset.kind); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
                     try { extraAsset.Icon = FileAccessPlugin.Image.LoadSprite(Internal.pluginDirectory + "cache\\" + asset.id + ".png"); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set icon"); }
@@ -335,14 +352,14 @@ namespace LordAshes
                     ExtraAssetPlugin.AddAsset(extraAsset);
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high)
                     {
-                        Debug.Log("Extra Assets Registration Plugin: Id: "+extraAsset.Id+" ("+asset.location+")");
+                        Debug.Log("Extra Assets Registration Plugin: Id: " + extraAsset.Id + " (" + asset.location + ")");
                         Debug.Log("Extra Assets Registration Plugin: Name: " + extraAsset.Name);
                         Debug.Log("Extra Assets Registration Plugin: Description: " + extraAsset.Description);
                         // Debug.Log("Extra Assets Registration Plugin: Kind: " + extraAsset.Kind);
                         Debug.Log("Extra Assets Registration Plugin: CustomKind: " + extraAsset.CustomKind);
                         Debug.Log("Extra Assets Registration Plugin: GroupName: " + extraAsset.GroupName);
                         Debug.Log("Extra Assets Registration Plugin: Tags: " + extraAsset.tags);
-                        Debug.Log("Extra Assets Registration Plugin: Icon: " + (extraAsset.Icon!=null));
+                        Debug.Log("Extra Assets Registration Plugin: Icon: " + (extraAsset.Icon != null));
                         Debug.Log("Extra Assets Registration Plugin: Base Handler: " + (extraAsset.BaseCallback != null));
                         Debug.Log("Extra Assets Registration Plugin: Model Handler: " + (extraAsset.ModelCallback != null));
                         Debug.Log("Extra Assets Registration Plugin: Pre Handler: " + true);

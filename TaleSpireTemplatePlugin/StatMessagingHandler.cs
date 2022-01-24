@@ -63,6 +63,10 @@ namespace LordAshes
                             StopAudio(change.cid);
                         }
                     }
+                    else if (change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Transform"))
+                    {
+
+                    }
                 }
             }
         }

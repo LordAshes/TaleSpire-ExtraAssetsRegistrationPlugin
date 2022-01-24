@@ -36,7 +36,7 @@ namespace LordAshes
                 public string description { get; set; } = "";
                 public string tags { get; set; } = "";
                 public string[] variants { get; set; } = null;
-                public string prefabName { get; set; } = "";
+                public string chainLoad { get; set; } = null;
                 public string author { get; set; } = "Anonymous";
                 public string version { get; set; } = "Unversioned";
                 public string comment { get; set; } = "";
@@ -48,6 +48,32 @@ namespace LordAshes
                 public string assetBase { get; set; } = "DEFAULT";
                 public MeshAdjustments mesh { get; set; } = new MeshAdjustments();
                 public Locations locations { get; set; } = new Locations();
+
+                public Data.AssetInfo Clone()
+                {
+                    return new AssetInfo()
+                    {
+                        id = this.id,
+                        name = this.name,
+                        kind = this.kind,
+                        groupName = this.groupName,
+                        description = this.description,
+                        tags = this.tags,
+                        variants = this.variants,
+                        chainLoad = this.chainLoad,
+                        author = this.author,
+                        version = this.version,
+                        comment = this.comment,
+                        timeToLive = this.timeToLive,
+                        size = this.size,
+                        code = this.code,
+                        global = this.global,
+                        location = this.location,
+                        assetBase = this.assetBase,
+                        mesh = this.mesh,
+                        locations = this.locations
+                    };
+                }
             }
 
             public enum AutomaticAssetsSeekSetting

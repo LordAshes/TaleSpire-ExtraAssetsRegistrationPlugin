@@ -1,6 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
-using Bounce.TaleSpire.AssetManagement;
 using Bounce.Unmanaged;
 using DataModel;
 using Newtonsoft.Json;
@@ -8,9 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace LordAshes
@@ -25,6 +20,8 @@ namespace LordAshes
             private static BaseUnityPlugin pluginReference = null;
 
             public static Dictionary<string, Data.AssetInfo> AssetsByFileLocation = new Dictionary<string, Data.AssetInfo>();
+
+            public static bool chainLoaderInProgress = false;
 
             public static void Initialize(BaseUnityPlugin pluginRef, Data.AssetGroups groupStrategySetting)
             {
@@ -111,8 +108,6 @@ namespace LordAshes
                             Data.AssetInfo info = JsonConvert.DeserializeObject<Data.AssetInfo>(txt);
                             if (code != "") { info.code = code; }
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Info = " + JsonConvert.SerializeObject(info)); }
-                            info.id = ExtraAssetsLibrary.DTO.Asset.GenerateID(ExtraAssetsRegistrationPlugin.Guid + "." + location).ToString();
-                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Id = " + info.id.ToString()); }
                             info.location = location;
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Location = " + info.location); }
                             switch (groupStrategy)
@@ -133,9 +128,6 @@ namespace LordAshes
                             if (info.groupName == "") { info.groupName = "Custom Content"; }
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Group = " + info.groupName); }
 
-                            assetsByLocation.Add(info.location, info);
-                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Added To List"); }
-
                             Texture2D portrait = null;
                             if (System.IO.Path.GetExtension(location) == "")
                             {
@@ -146,23 +138,43 @@ namespace LordAshes
                                 portrait = FileAccessPlugin.Image.LoadTexture(System.IO.Path.GetDirectoryName(location) + "/portrait.png");
                             }
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Portrait? " + (portrait != null)); }
-                            if (portrait != null)
+
+                            List<string> variants = (info.variants != null) ? info.variants.ToList<string>() : new List<string>();
+                            variants.Insert(0, "");
+                            foreach (string variant in variants)
                             {
-                                try
+                                Data.AssetInfo variantInfo = info.Clone();
+                                variantInfo.name = variantInfo.name + ((variant != "") ? " (" + variant + ")" : "");
+                                variantInfo.id = ExtraAssetsLibrary.DTO.Asset.GenerateID(ExtraAssetsRegistrationPlugin.Guid + "." + variantInfo.location + variant).ToString();
+                                variantInfo.location = variantInfo.location + "." + System.IO.Path.GetFileNameWithoutExtension(variantInfo.location) + variant;
+                                if (variant != "")
                                 {
-                                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Caching Portrait"); }
-                                    System.IO.File.WriteAllBytes(Internal.pluginDirectory + "cache\\" + info.id.ToString() + ".png", portrait.EncodeToPNG());
+                                    variantInfo.variants = null;
+                                    variantInfo.chainLoad = null;
                                 }
-                                catch (Exception)
+                                if (variant != "") { variantInfo.groupName = "[Variants]"; }
+                                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Id = " + variantInfo.id.ToString()); }
+                                assetsByLocation.Add(variantInfo.location, variantInfo);
+                                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Added " + variantInfo.location + " To List (" + variantInfo.groupName + ")"); }
+
+                                if (portrait != null)
                                 {
-                                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Failed To Cache Portrait"); }
-                                    portrait = null;
+                                    try
+                                    {
+                                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Caching Portrait"); }
+                                        System.IO.File.WriteAllBytes(Internal.pluginDirectory + "cache\\" + variantInfo.id.ToString() + ".png", portrait.EncodeToPNG());
+                                    }
+                                    catch (Exception)
+                                    {
+                                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Failed To Cache Portrait"); }
+                                        portrait = null;
+                                    }
                                 }
-                            }
-                            if (portrait == null)
-                            {
-                                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Creating Default Portrait"); }
-                                ExtraAssetsRegistrationPlugin.Image.CreateTextImage(info.name, 128, 128, Internal.pluginDirectory + "Default.png").Save(Internal.pluginDirectory + "cache\\" + info.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                                if (portrait == null)
+                                {
+                                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Creating Default Portrait"); }
+                                    ExtraAssetsRegistrationPlugin.Image.CreateTextImage(variantInfo.name, 128, 128, Internal.pluginDirectory + "Default.png").Save(Internal.pluginDirectory + "cache\\" + variantInfo.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                                }
                             }
                         }
                         catch (Exception x)
@@ -206,7 +218,7 @@ namespace LordAshes
                 if (Input.GetKey(KeyCode.LeftShift)) { mode = "CREATURE"; }
                 if (Input.GetKey(KeyCode.RightShift)) { mode = "EFFECT"; }
 
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating Asset Of Type " + assetInfo.kind+" Using Mode "+mode); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating Asset Of Type " + assetInfo.kind + " Using Mode " + mode); }
                 if (mode == "SLAB")
                 {
                     try
@@ -221,91 +233,76 @@ namespace LordAshes
                     {
                         // Resolve asset code as Slab code
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Slab [" + System.IO.Path.GetFileName(assetInfo.location) + "]"); }
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Code...\r\n"+assetInfo.code); }
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Code...\r\n" + assetInfo.code); }
                         DirtyClipboardHelper.PushToClipboard(assetInfo.code);
                         pluginReference.StartCoroutine("DisplayMessage", new object[] { "Presss CTRL+V To Paste The Selected Slab", 3.0f });
                     }
                     return null;
                 }
-                else if ((System.IO.Path.GetFileName(assetInfo.location) == System.IO.Path.GetFileNameWithoutExtension(assetInfo.location)) || (System.IO.Path.GetExtension(assetInfo.location).ToUpper() == ".OBJ"))
+
+                // Resolve AsetBundles
+                string assetName = System.IO.Path.GetExtension(assetInfo.location).Substring(1);
+                string assetLocation = System.IO.Path.GetDirectoryName(assetInfo.location) + "/" + System.IO.Path.GetFileNameWithoutExtension(assetInfo.location);
+
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Asset (" + assetInfo.kind + ") '" + assetName + "' From File '" + assetInfo.location + "'"); }
+
+                GameObject model = null;
+                // Load from AssetBundle
+                AssetBundle ab = FileAccessPlugin.AssetBundle.Load(assetLocation);
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: AB Null? " + (ab == null)); }
+
+                if (Internal.graphics == Internal.GraphicsCapabilities.HighPerformance)
                 {
-                    // Resolve AsetBundles and OBJ/MTL asset
-                    string assetName = (assetInfo.prefabName != "") ? assetInfo.prefabName : System.IO.Path.GetFileNameWithoutExtension(assetInfo.location);
+                    // Try loading a high res version of the asset if one exists. Default to low res version if a high res version is not available. 
+                    model = ab.LoadAsset<GameObject>(assetName + "high");
+                    if (model == null) { model = ab.LoadAsset<GameObject>(assetName); }
+                }
+                else // if (Internal.graphics == Internal.GraphicsMode.lowPerformance)
+                {
+                    // Try loading a low res version of the asset if one exists. Default to high red version if a low res version is not available. 
+                    model = ab.LoadAsset<GameObject>(assetName);
+                    if (model == null) { model = ab.LoadAsset<GameObject>(assetName + "high"); }
+                }
 
-                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Asset (" + assetInfo.kind + ") '" + assetName + "' From File '" + assetInfo.location + "'"); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Model Null? " + (model == null)); }
+                if (model == null)
+                {
+                    // Prefab in asset bundle does not match asset bundle name. Try getting the first available prefab
+                    Debug.LogWarning("Extra Assets Registration Plugin: Improper Asset Bundle detected. Asset Bundle at '" + assetInfo.location + "' doesn't contain '" + assetName + "'. Trying to load '" + ab.GetAllAssetNames()[0] + "' instead.");
+                    model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
+                }
+                ab.Unload(false);
+                model.transform.eulerAngles = new Vector3(0, 180, 0);
 
-                    GameObject model = null;
-                    if (System.IO.Path.GetFileName(assetInfo.location) == System.IO.Path.GetFileNameWithoutExtension(assetInfo.location))
+                if (mode != "AURA" && mode != "EFFECT" && mode != "FILTER")
+                {
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying 'Taleweaver/CreatureShader' Shader"); }
+                    List<Renderer> renderers = new List<Renderer>();
+                    renderers.AddRange(model.GetComponents<Renderer>());
+                    renderers.AddRange(model.GetComponentsInChildren<Renderer>());
+                    foreach (Renderer renderer in renderers)
                     {
-                        // Load from AssetBundle
-                        AssetBundle ab = FileAccessPlugin.AssetBundle.Load(assetInfo.location);
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: AB Null? " + (ab == null)); }
-                        
-                        if(Internal.graphics==Internal.GraphicsCapabilities.HighPerformance)
-                        {
-                            // Try loading a high res version of the asset if one exists. Default to low res version if a high res version is not available. 
-                            model = ab.LoadAsset<GameObject>(assetName+"high");
-                            if (model == null) { model = ab.LoadAsset<GameObject>(assetName); }
-                        }
-                        else // if (Internal.graphics == Internal.GraphicsMode.lowPerformance)
-                        {
-                            // Try loading a low res version of the asset if one exists. Default to high red version if a low res version is not available. 
-                            model = ab.LoadAsset<GameObject>(assetName);
-                            if (model == null) { model = ab.LoadAsset<GameObject>(assetName + "high"); }
-                        }
-
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Model Null? " + (model == null)); }
-                        if(model==null)
-                        {
-                            // Prefab in asset bundle does not match asset bundle name. Try getting the first available prefab
-                            Debug.LogWarning("Extra Assets Registration Plugin: Improper Asset Bundle detected. Asset Bundle at '" + assetInfo.location + "' doesn't contain '" + assetName + "'. Trying to load '" + ab.GetAllAssetNames()[0] + "' instead.");
-                            model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
-                        }
-                        ab.Unload(false);
+                        renderer.material.shader = Shader.Find("Taleweaver/CreatureShader");
                     }
-                    else if (System.IO.Path.GetExtension(assetInfo.location).ToUpper()==".OBJ")
-                    {
-                        // Load from OBJ/MTL
-                        Debug.LogWarning("Extra Assets Registration Plugin: OBJ/MTL files are not supported. Please create a Unity AssetBundle or a Slab file");
-                        model = null;
-                    }
-                    model.transform.eulerAngles = new Vector3(0, 180, 0);
-
-                    if (mode != "AURA" && mode != "EFFECT" && mode != "FILTER")
-                    {
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying 'Taleweaver/CreatureShader' Shader"); }
-                        List<Renderer> renderers = new List<Renderer>();
-                        renderers.AddRange(model.GetComponents<Renderer>());
-                        renderers.AddRange(model.GetComponentsInChildren<Renderer>());
-                        foreach (Renderer renderer in renderers)
-                        {
-                            renderer.material.shader = Shader.Find("Taleweaver/CreatureShader");
-                        }
-                    }
-                    else
-                    {
-                        List<Renderer> renderers = new List<Renderer>();
-                        renderers.AddRange(model.GetComponents<Renderer>());
-                        renderers.AddRange(model.GetComponentsInChildren<Renderer>());
-                        string shaderNames = "";
-                        foreach (Renderer renderer in renderers)
-                        {
-                            if(!shaderNames.Contains(renderer.material.shader.name+","))
-                            {
-                                shaderNames = shaderNames+ renderer.material.shader.name+",";
-                            }
-                        }
-                        if (shaderNames.EndsWith(",")) { shaderNames = shaderNames.Substring(0, shaderNames.Length - 1); }
-
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Keeping Asset Bundle Shader ("+shaderNames+")"); }
-                    }
-                    return model;
                 }
                 else
                 {
-                    Debug.LogWarning("Extra Assets Registration Plugin: Unsupported file type (" + assetInfo.location + ")");
-                    return null;
+                    List<Renderer> renderers = new List<Renderer>();
+                    renderers.AddRange(model.GetComponents<Renderer>());
+                    renderers.AddRange(model.GetComponentsInChildren<Renderer>());
+                    string shaderNames = "";
+                    foreach (Renderer renderer in renderers)
+                    {
+                        if (!shaderNames.Contains(renderer.material.shader.name + ","))
+                        {
+                            shaderNames = shaderNames + renderer.material.shader.name + ",";
+                        }
+                    }
+                    if (shaderNames.EndsWith(",")) { shaderNames = shaderNames.Substring(0, shaderNames.Length - 1); }
+
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Keeping Asset Bundle Shader (" + shaderNames + ")"); }
                 }
+                return model;
             }
 
             public static bool LibrarySelectionMade(NGuid nguid, AssetDb.DbEntry.EntryKind kind)
@@ -313,16 +310,6 @@ namespace LordAshes
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Library Selection Made"); }
 
                 Data.AssetInfo assetInfo = FindAssetInfo(nguid);
-
-                if (assetInfo.variants!=null)
-                {
-                    Internal.self.StartCoroutine("GetSubselection", new object[] { assetInfo });
-                    return false;
-                }
-                else if (assetInfo.location.ToUpper() != "CORE")
-                {
-                    AssetsByFileLocation[assetInfo.location].prefabName = System.IO.Path.GetFileNameWithoutExtension(assetInfo.location);
-                }
 
                 string mode = assetInfo.kind.ToUpper();
                 if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) { mode = "AURA"; }
@@ -353,15 +340,15 @@ namespace LordAshes
                 else if (mode == "FILTER")
                 {
                     // Spawn filter
-                    if (GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + AssetsByFileLocation[assetInfo.location].prefabName) == null)
+                    if (GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location)) == null)
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning Camera Filter"); }
-                        CreateAura(CreatureGuid.Empty, AssetsByFileLocation[assetInfo.location].prefabName, nguid);
+                        CreateAura(CreatureGuid.Empty, System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location), nguid);
                     }
                     else
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Removing Camera Filter"); }
-                        GameObject.Destroy(GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + AssetsByFileLocation[assetInfo.location].prefabName));
+                        GameObject.Destroy(GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location)));
                     }
                 }
                 else if (asset != null && mode == "TRANSFORMATION")
@@ -410,16 +397,27 @@ namespace LordAshes
 
             public static void LibrarySelectionMiniPlaced(NGuid nguid, CreatureGuid cid)
             {
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini "+cid+" of type "+nguid+" Placed."); }
+                Data.AssetInfo assetInfo = AssetHandler.FindAssetInfo(nguid);
+                if (assetInfo.chainLoad != null && chainLoaderInProgress == false)
+                {
+                    Internal.self.StartCoroutine("ChainLoader", new object[] { assetInfo, cid });
+                }
             }
 
             public static CreatureGuid SpawnCreature(Data.AssetInfo asset, Vector3 pos, Vector3 rot, bool initalHidden = false)
+            {
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Content " + asset.location + " has Nguid = " + asset.id.ToString()); }
+                return SpawnCreature(new NGuid(asset.id), pos, rot, initalHidden);
+            }
+
+            public static CreatureGuid SpawnCreature(NGuid transformNguid, Vector3 pos, Vector3 rot, bool initalHidden = false)
             {
                 CreatureDataV1 creatureDataV1 = default(CreatureDataV1);
                 creatureDataV1.CreatureId = CreatureGuid.Empty;
                 try
                 {
-                    NGuid transformNguid = new NGuid(asset.id);
-                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Content " + asset.location + " has Nguid = " + transformNguid.ToString()); }
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning Content Nguid" + transformNguid.ToString()); }
                     creatureDataV1 = new CreatureDataV1(transformNguid);
                     creatureDataV1.CreatureId = new CreatureGuid(new Bounce.Unmanaged.NGuid(System.Guid.NewGuid()));
 
@@ -453,7 +451,8 @@ namespace LordAshes
                     {
                         foreach (AssetDb.DbEntry item in group.Entries)
                         {
-                            if (item.Name == contentName) { return item.Id; }
+                            // if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Found '"+item.Name+"'. Looking For '"+contentName+"'"); }
+                            if (item.Name.ToUpper() == contentName.ToUpper()) { return item.Id; }
                         }
                     }
                 }
@@ -467,7 +466,7 @@ namespace LordAshes
                     if (seekAssetInfo.id == nguid.ToString())
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Custom Asset Recognized"); }
-                        return seekAssetInfo;
+                        return seekAssetInfo.Clone();
                     }
                 }
                 foreach ((AssetDb.DbEntry.EntryKind, List<AssetDb.DbGroup>) groups in AssetDb.GetAllGroups())
@@ -573,30 +572,64 @@ namespace LordAshes
             }
         }
 
-        public IEnumerator GetSubselection(object[] inputs)
+        public IEnumerator ChainLoader(object[] inputs)
         {
-            Debug.Log("Extra Assets Registration Plugin: Opening Sub-Selection Menu");
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Surpressing Chain Loader"); }
+            AssetHandler.chainLoaderInProgress = true;
             Data.AssetInfo assetInfo = (Data.AssetInfo)inputs[0];
-            Vector2 mouse = new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
-            Internal.menuOpenSubselection = assetInfo;
-            Internal.menuOpenSubselectionPos = mouse;
-            Internal.menuOpenSubselection.prefabName = "";
-            Debug.Log("Extra Assets Registration Plugin: Waiting On Sub-Selection");
-            while (Internal.menuOpenSubselection.prefabName == "")
+            CreatureGuid cid = (CreatureGuid)inputs[1];
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Chain Loading..."); }
+            CreatureBoardAsset asset = null;
+            while (asset == null)
             {
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(0.5f);
+                CreaturePresenter.TryGetAsset(cid, out asset);
             }
-            Debug.Log("Extra Assets Registration Plugin: Sub-Selection '"+ Internal.menuOpenSubselection.prefabName + "' Made. Closing Sub-Selection Menu.");
-            AssetHandler.AssetsByFileLocation[assetInfo.location].prefabName = Internal.menuOpenSubselection.prefabName;
-            Internal.menuOpenSubselection = null;
-            Debug.Log("Extra Assets Registration Plugin: Creating Prefab");
-            GameObject prefab = AssetHandler.CreateAsset(assetInfo);
-            yield return new WaitForSeconds(0.1f);
-            Debug.Log("Extra Assets Registration Plugin: Resuming Mini Placement On Board ("+ assetInfo.id + ").");
-            yield return new WaitForSeconds(0.1f);
-            SystemMessage.DisplayInfoText("Sub-Selections Not Yet Supported.");
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini " + JsonConvert.SerializeObject(assetInfo)); }
+            if (asset != null)
+            {
+                string[] chain = assetInfo.chainLoad.Split(',');
+                for (int i = 0; i < chain.Length; i = i + 7)
+                {
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning " + chain[i]); }
+                    Vector3 pos = new Vector3(float.Parse(chain[i + 1]), float.Parse(chain[i + 2]), float.Parse(chain[i + 3]));
+                    Vector3 rot = new Vector3(float.Parse(chain[i + 4]), float.Parse(chain[i + 5]), float.Parse(chain[i + 6]));
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini " + chain[i] + " Offset Pos " + pos.ToString() + " & Offset Rot " + rot.ToString()); }
+                    if (chain[i].ToUpper() != "{VARIANT}")
+                    {
+                        NGuid nguid = AssetHandler.FindAssetId(chain[i]);
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini " + chain[i] + " Has Guid " + nguid.ToString()); }
+                        Data.AssetInfo chainAssetInfo = AssetHandler.FindAssetInfo(nguid);
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning " + JsonConvert.SerializeObject(chainAssetInfo)); }
+                        AssetHandler.SpawnCreature(chainAssetInfo, asset.CreatureRoot.position + pos, asset.CreatureRoot.eulerAngles + rot);
+                    }
+                    else
+                    {
+                        SingletonBehaviour<BoardToolManager>.Instance.SwitchToTool<DefaultBoardTool>(BoardToolManager.Type.Normal);
+                        Vector2 mouse = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Activating Sub-Selection Menu At " + mouse.ToString()); }
+                        Internal.menuOpenSubselectionPos = mouse;
+                        Internal.menuSubselectionSpawnPos = asset.CreatureRoot.position;
+                        Internal.menuSubselectionSpawnRot = asset.CreatureRoot.eulerAngles;
+                        Internal.menuOpenSubselection = assetInfo.Clone();
+                        Internal.menuOpenSubselection.comment = asset.Creature.CreatureId.ToString();
+                    }
+                }
+            }
+            if (assetInfo.chainLoad == null || !assetInfo.chainLoad.ToUpper().Contains("{VARIANT}"))
+            {
+                asset.RequestDelete();
+                Internal.self.StartCoroutine("SupressChainLoad");
+            }
         }
 
+        public IEnumerator SupressChainLoad()
+        {
+            AssetHandler.chainLoaderInProgress = true;
+            yield return new WaitForSeconds(Internal.delayChainLoaderSupression);
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Re-enabling Chain Loader"); }
+            AssetHandler.chainLoaderInProgress = false;
+        }
 
         public IEnumerator DisplayMessage(object[] inputs)
         {
