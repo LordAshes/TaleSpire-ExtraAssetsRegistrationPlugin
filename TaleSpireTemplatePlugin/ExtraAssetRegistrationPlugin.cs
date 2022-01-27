@@ -22,7 +22,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "2.9.0.0";
+        public const string Version = "3.0.0.0";
 
         private static class Internal
         {

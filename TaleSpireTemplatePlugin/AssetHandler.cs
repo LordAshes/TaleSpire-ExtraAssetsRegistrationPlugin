@@ -39,7 +39,14 @@ namespace LordAshes
                     assetList = JsonConvert.DeserializeObject<Data.AssetInfo[]>(json);
                     foreach (Data.AssetInfo asset in assetList)
                     {
-                        assetsByLocation.Add(asset.location, asset);
+                        if(!assetsByLocation.ContainsKey(asset.location))
+                        {
+                            assetsByLocation.Add(asset.location, asset);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Extra Assets Registration Plugin: Repeated Existing Asset From Location "+ asset.location);
+                        }
                     }
                 }
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Found "+assetsByLocation.Count+" Previous Assets"); }
@@ -47,7 +54,7 @@ namespace LordAshes
                 foreach (string location in FileAccessPlugin.File.Catalog(false))
                 {
                     bool isKnownAssetType = (System.IO.Path.GetExtension(location) == "") || (System.IO.Path.GetExtension(location).ToUpper() == ".SLAB");
-                    if (isKnownAssetType && !assetsByLocation.ContainsKey(location))
+                    if (isKnownAssetType && !assetsByLocation.ContainsKey(location+"."+System.IO.Path.GetFileNameWithoutExtension(location)))
                     {
                         // Add new asset to the asset cache
                         newAssets = true;
@@ -154,7 +161,16 @@ namespace LordAshes
                                 }
                                 if (variant != "") { variantInfo.groupName = "[Variants]"; }
                                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Id = " + variantInfo.id.ToString()); }
-                                assetsByLocation.Add(variantInfo.location, variantInfo);
+
+                                if (!assetsByLocation.ContainsKey(variantInfo.location))
+                                {
+                                    assetsByLocation.Add(variantInfo.location, variantInfo);
+                                }
+                                else
+                                {
+                                    Debug.LogWarning("Extra Assets Registration Plugin: Repeated New Asset From Location " + variantInfo.location+" ("+ location + "." + System.IO.Path.GetFileNameWithoutExtension(location) + ")");
+                                }
+
                                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Added " + variantInfo.location + " To List (" + variantInfo.groupName + ")"); }
 
                                 if (portrait != null)
@@ -302,6 +318,21 @@ namespace LordAshes
 
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Keeping Asset Bundle Shader (" + shaderNames + ")"); }
                 }
+                Transform[] markers = model.transform.Children().ToArray();
+                foreach (Transform marker in markers)
+                {
+                    if (marker.name == "HandRight")
+                    {
+                        AssetsByFileLocation[assetInfo.location].locations.handRight = marker.position.x + "," + marker.position.y + "," + marker.position.z + "," + marker.eulerAngles.x + "," + marker.eulerAngles.y + "," + marker.eulerAngles.z;
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Updated Right Hand Hook to " + AssetsByFileLocation[assetInfo.location].locations.handRight); }
+                    }
+                    else if (marker.name == "HandLeft")
+                    {
+                        AssetsByFileLocation[assetInfo.location].locations.handLeft = marker.position.x + "," + marker.position.y + "," + marker.position.z + "," + marker.eulerAngles.x + "," + marker.eulerAngles.y + "," + marker.eulerAngles.z;
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Updated Left Hand Hook to " + AssetsByFileLocation[assetInfo.location].locations.handLeft); }
+                    }
+                }
+
                 return model;
             }
 

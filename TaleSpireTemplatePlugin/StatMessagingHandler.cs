@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using Bounce.Unmanaged;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,7 +88,6 @@ namespace LordAshes
                         DestroyAura(cid, auraName);
                     }
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating '" + auraName + "' aura on " + cid.ToString()); }
-                    // assetInfo.kind = "AURA";
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Getting prefab"); }
                     GameObject prefab = ExtraAssetsRegistrationPlugin.AssetHandler.CreateAsset(assetInfo);
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Instancing model"); }
@@ -96,10 +96,80 @@ namespace LordAshes
                     GameObject.Destroy(prefab);
                     if (asset != null)
                     {
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying aura to mini"); }
-                        model.transform.position = asset.BaseLoader.LoadedAsset.transform.position;
-                        model.transform.eulerAngles = new Vector3(0f, asset.BaseLoader.LoadedAsset.transform.eulerAngles.y, 0f);
+                        Data.AssetInfo parentAssetInfo = AssetHandler.FindAssetInfo(asset.BoardAssetId);
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying aura to mini " + JsonConvert.SerializeObject(parentAssetInfo)); }
+                        Vector3 pos = new Vector3(float.Parse(assetInfo.mesh.positionOffset.Split(',')[0]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[1]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[2]));
+                        Vector3 rot = new Vector3(float.Parse(assetInfo.mesh.rotationOffset.Split(',')[0]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[1]), float.Parse(assetInfo.mesh.rotationOffset.Split(',')[2]));
+                        Vector3 anchorPos = Vector3.zero;
+                        Vector3 anchorRot = Vector3.zero;
+                        Debug.Log("Extra Assets Registration Plugin: Anchor Type: " + assetInfo.anchor.ToUpper());
+                        switch (assetInfo.anchor.ToUpper())
+                        {
+                            case "HEAD":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.head.Split(',')[0]), float.Parse(parentAssetInfo.locations.head.Split(',')[1]), float.Parse(parentAssetInfo.locations.head.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.head.Split(',')[3]), float.Parse(parentAssetInfo.locations.head.Split(',')[4]), float.Parse(parentAssetInfo.locations.head.Split(',')[5]));
+                                break;
+                            case "HIT":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.hit.Split(',')[0]), float.Parse(parentAssetInfo.locations.hit.Split(',')[1]), float.Parse(parentAssetInfo.locations.hit.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.hit.Split(',')[3]), float.Parse(parentAssetInfo.locations.hit.Split(',')[4]), float.Parse(parentAssetInfo.locations.hit.Split(',')[5]));
+                                break;
+                            case "SPELL":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.spell.Split(',')[0]), float.Parse(parentAssetInfo.locations.spell.Split(',')[1]), float.Parse(parentAssetInfo.locations.spell.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.spell.Split(',')[3]), float.Parse(parentAssetInfo.locations.spell.Split(',')[4]), float.Parse(parentAssetInfo.locations.spell.Split(',')[5]));
+                                break;
+                            case "TORCH":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.torch.Split(',')[0]), float.Parse(parentAssetInfo.locations.torch.Split(',')[1]), float.Parse(parentAssetInfo.locations.torch.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.torch.Split(',')[3]), float.Parse(parentAssetInfo.locations.torch.Split(',')[4]), float.Parse(parentAssetInfo.locations.torch.Split(',')[5]));
+                                break;
+                            case "HANDRIGHT":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.handRight.Split(',')[0]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[1]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.handRight.Split(',')[3]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[4]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[5]));
+                                break;
+                            case "HANDLEFT":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.handLeft.Split(',')[0]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[1]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.handLeft.Split(',')[3]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[4]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[5]));
+                                break;
+                            /*
+                            case "2HANDS":
+                                Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.handRight.Split(',')[0]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[1]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.handLeft.Split(',')[0]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[1]), float.Parse(parentAssetInfo.locations.handLeft.Split(',')[2])) - new Vector3(float.Parse(parentAssetInfo.locations.handRight.Split(',')[0]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[1]), float.Parse(parentAssetInfo.locations.handRight.Split(',')[2]));
+                                break;
+                            */
+                            default:
+                                if (assetInfo.anchor.ToUpper() == "ROOT")
+                                {
+                                    Debug.Log("Extra Assets Registration Plugin: Anchor Recognized: " + assetInfo.anchor.ToUpper());
+                                }
+                                else
+                                {
+                                    Debug.Log("Extra Assets Registration Plugin: Anchor " + assetInfo.anchor.ToUpper()+" Not Recognized. Using default ROOT anchor.");
+                                }
+                                anchorPos = new Vector3(float.Parse(parentAssetInfo.locations.root.Split(',')[0]), float.Parse(parentAssetInfo.locations.root.Split(',')[1]), float.Parse(parentAssetInfo.locations.root.Split(',')[2]));
+                                anchorRot = new Vector3(float.Parse(parentAssetInfo.locations.root.Split(',')[3]), float.Parse(parentAssetInfo.locations.root.Split(',')[4]), float.Parse(parentAssetInfo.locations.root.Split(',')[5]));
+                                break;
+                        }
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high)
+                        {
+                            Debug.Log("Extra Assets Registration Plugin: Mini Position: " + asset.BaseLoader.LoadedAsset.transform.position.ToString());
+                            Debug.Log("Extra Assets Registration Plugin: Anchor Offset: " + anchorPos.ToString());
+                            Debug.Log("Extra Assets Registration Plugin: Mesh Offset:   " + pos.ToString());
+                            Debug.Log("Extra Assets Registration Plugin: Mini Rotation:   " + asset.CreatureRoot.transform.eulerAngles.ToString());
+                            Debug.Log("Extra Assets Registration Plugin: Anchor Rotation: " + anchorRot.ToString());
+                            Debug.Log("Extra Assets Registration Plugin: Mesh Rotation:   " + rot.ToString());
+                        }
+                        model.transform.position = asset.BaseLoader.LoadedAsset.transform.position + anchorPos + pos;
+                        Vector3 worldRot = asset.BaseLoader.LoadedAsset.transform.eulerAngles;
+                        asset.BaseLoader.LoadedAsset.transform.eulerAngles = new Vector3(asset.BaseLoader.LoadedAsset.transform.eulerAngles.x, 270, asset.BaseLoader.LoadedAsset.transform.eulerAngles.z);
+                        model.transform.localEulerAngles = anchorRot;
                         model.transform.SetParent(asset.BaseLoader.LoadedAsset.transform);
+                        asset.BaseLoader.LoadedAsset.transform.eulerAngles = worldRot;
                     }
                     else
                     {
