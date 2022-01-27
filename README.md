@@ -8,6 +8,7 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment
 2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset
 2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer)
 2.8.0: Added Encounter spawing (also know as Chain Loader) functionality
@@ -127,6 +128,9 @@ Under "Encounters" is a sample asset which loads 3 assassins, demonstrating the 
 
 Under "Fey" is a sample asset which uses sub-selection. When you drop this asset to the board you will have a sub-choice
 of two variations which, in this case, change the colour/texture of the clothing that the fey is wearing.
+
+Under "Weapons" (of the Creature category) you will find two weapons (a club and a morningstar). Each has a right hand
+and left hand version. These are aura weapons which can be added to minis by spawning then while holding ALT. 
 
 
 ### Keyboard Hotkeys
@@ -277,6 +281,7 @@ while the content is JSON, the extension of the file remains txt. The conent sho
   "tags": "Human,Rogue,Assasin",
   "variants": [ "BrownLeather", "BlackLeather" ]
   "chainLoad": "{VARIANT},0,0,0,0,0,0",
+  "anchor": null,
   "author": "Lord Ashes",
   "version": "1.0",
   "comment": "Maximo source",
@@ -285,10 +290,12 @@ while the content is JSON, the extension of the file remains txt. The conent sho
   "code": "",
   "locations":
   {
-    "head": "0.0,0.7,0.0",
-    "hit": "0.0,0.5,0.0",
-    "spell": "0.0,0.5,0.0",
-    "torch": "0.0,0.5,0.0"
+    "head": "0.0,0.7,0.0,0,0,0",
+    "hit": "0.0,0.5,0.0,0,0,0",
+    "spell": "0.0,0.5,0.0,0,0,0",
+    "torch": "0.0,0.5,0.0,0,0,0",
+    "handRight": "0.0,0.5,0.0,0,0,0",
+    "handLeft": "0.0,0.5,0.0,0,0,0"
   },
   "meshAdjustments":
   {
@@ -306,13 +313,14 @@ Where "description" is a description of the asset. Not currently used. To be use
 Where "tags" is a list of tags associated with the asset. Not currently used. To be used in the future. 
 Where "variants" a list of strings indicating available variants. Null if no variants offered.
 Where "chainLoad" is used to load multiple assets at once. See Chain Loader section below.
+Where "anchor" is used with Auras to indicated where the aura is attached. See Aura Anchors section below.
 
 Where "author", "version", and "comment" are user strings ignored by EAR.
 Where "code" can be used to make slabs in Unity. However, the simplified slab creation process avoids the need to create
       slabs in Unity, so this property does not need to be used.
-Where "size" determine the GM Tools Size of the asset (e.g. 0.5, 1, 2, 4). *For future use.
+Where "size" determine the GM Tools Size of the asset (e.g. 0.5, 1, 2, 4).
 Where "assetBase" determines the "recommended" base setting for the asset (None, Default or a base file).
-Where "locations" defines the offset for various points on the asset. *For future use.
+Where "locations" defines the positiona and rotation offset for various points on the asset. *For aura anchors and future use.*
 Where "meshAdjustments" defines the mesh size adjustments and mesh offsets.
 
 Note 1: Depending on the Extra Asset Registration plugin group settings (see above) the groupName may be ignored
@@ -457,6 +465,64 @@ laWizard01WhiteRobe, laWizard01RedRobe and laWizard01BlackRobe for the variant p
 The keyword {VARIANT} tells the chainLoader to load the asset that is selected from the variants list. Unlike the
 encounter functionality use of the chain loader which can be used to load multiple assets, use of the {VARIANT} keyword
 restricts the chain loader to load only one asset (the one that corresponds to the selected asset).
+
+### Making Swappable Items (Aura Anchors)
+
+Aura anchors allow an aura to be attached to a specific part of a mini regardless of the shape of the mini. This
+feature is most commonly used to make auras of equipment such as weapons or lanterns which the players can add or
+remove as needed. In previous version, the issue with making such aura items was that since different minis have
+different sizes and poses, body parts like the hands were not in the same place for each mini and thus aura items
+had to be mini specific. Aura anchors address this issue but allowing the auras to be anchored to a specific location
+name and the mini can define the position of the specific location name. This means that aura items can now be genral
+and the same aura items can be used by many minis.
+
+To achieve this, the optional anchor property can be set to one of the supported named locations:
+
+```
+HEAD
+HIT
+SPELL
+TORCH
+HANDRIGHT
+HANDLEFT
+``` 
+
+If a mini defines these points, that location will be used as the attach point for the aura. Any points that the mini
+does not define will use a hard coded default. For example, to anchor the aura to the right hand, one would use:
+
+``"anchor": "HANDRIGHT"``
+
+When making swappable item auras the item mesh should be placed around the origin (0,0,0) with the origin being the
+attachment point. For example, a lantern held by a ring at the top would have its ring at the origin with most of the
+lantern mesh being below the origin. A sword, on the other hand, would have the origin somewhere along the handle with
+some of the handle below the origin but the guard and blade would be above the origin.
+
+### Making Swappable Items Compatible Minis
+
+The aura anchor feature works best when mini adjust the named locations to match the specific mini as opposed to just
+using the defaults. There are three ways to do this:
+
+#### Specifying Named Locations - Optimized Method
+
+Fill in value of the named location(s) in the info.txt file when making the custom asset. The value is a string of
+six numbers seperated by commas. The first three numbers specify the x, y and z axis offsets from the centre of the
+mini to the location. The next three numbers are the rotation offets around the x, y and z axis. This method is optimized
+over the second method (see below) because it does not rely on any additional component in the actual mini. Only the
+info.txt file for the mini is affected. However, it can be difficult to fill in such values because there is not visual
+reference to determine in the values are correct. This is where the second method comes in.
+
+#### Specifying Named Locations - Lazy Method (Only for hands)
+
+In Unity, create two children object under the custom mini object. Name one HandRight and the other HandLeft. Adjust the
+position and rotation of the objects to match the right and left hand. Extra Asset Registration will look for these
+objects and set the position and rotation offsets accordingly (at runtime). This method is slightly less optimized since
+it introduces two game objects which don't do anything at runtime.
+
+#### Specifying Named Locations - Hybrid Method (Only for hands)
+
+Follow the steps of the lazy method above but when the hand object have been positioned correctly, read the transform
+information (position and rotation) and use those numbers for the values following the Optimized method above. Delete
+the hand objects afterwards to end up with an optimized solution.
 
 
 ## Limitations
