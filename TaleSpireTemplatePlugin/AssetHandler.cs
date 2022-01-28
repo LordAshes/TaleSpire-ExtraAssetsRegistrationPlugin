@@ -32,9 +32,9 @@ namespace LordAshes
             public static bool GetAssets(ref Dictionary<string, Data.AssetInfo> assetsByLocation)
             {
                 Data.AssetInfo[] assetList = new Data.AssetInfo[] { };
-                if (System.IO.File.Exists(ExtraAssetsRegistrationPlugin.Internal.pluginDirectory + "\\cache\\AssetInfo.cache"))
+                if (System.IO.File.Exists(ExtraAssetsRegistrationPlugin.Internal.cacheDirectory + "\\AssetInfo.cache"))
                 {
-                    string json = FileAccessPlugin.File.ReadAllText(Internal.pluginDirectory + "\\cache\\AssetInfo.cache");
+                    string json = FileAccessPlugin.File.ReadAllText(Internal.cacheDirectory + "\\AssetInfo.cache");
                     json = RectifyToLocalFormat(json);
                     assetList = JsonConvert.DeserializeObject<Data.AssetInfo[]>(json);
                     foreach (Data.AssetInfo asset in assetList)
@@ -178,7 +178,7 @@ namespace LordAshes
                                     try
                                     {
                                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Caching Portrait"); }
-                                        System.IO.File.WriteAllBytes(Internal.pluginDirectory + "cache\\" + variantInfo.id.ToString() + ".png", portrait.EncodeToPNG());
+                                        System.IO.File.WriteAllBytes(Internal.cacheDirectory + "\\" + variantInfo.id.ToString() + ".png", portrait.EncodeToPNG());
                                     }
                                     catch (Exception)
                                     {
@@ -189,7 +189,7 @@ namespace LordAshes
                                 if (portrait == null)
                                 {
                                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Creating Default Portrait"); }
-                                    ExtraAssetsRegistrationPlugin.Image.CreateTextImage(variantInfo.name, 128, 128, Internal.pluginDirectory + "Default.png").Save(Internal.pluginDirectory + "cache\\" + variantInfo.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                                    ExtraAssetsRegistrationPlugin.Image.CreateTextImage(variantInfo.name, 128, 128, Internal.pluginDirectory + "Default.png").Save(Internal.cacheDirectory + "\\" + variantInfo.id.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
                                 }
                             }
                         }

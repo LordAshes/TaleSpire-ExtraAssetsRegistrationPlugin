@@ -22,7 +22,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.0.0.0";
+        public const string Version = "3.0.1.0";
 
         private static class Internal
         {
@@ -48,6 +48,7 @@ namespace LordAshes
 
             // Settings
             public static string pluginDirectory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
+            public static string cacheDirectory = pluginDirectory + "CustomData\\cache";
             public static Data.AutomaticAssetsSeekSetting seekSetting = Data.AutomaticAssetsSeekSetting.newAssetsOnly;
             
             public static ConfigEntry<KeyboardShortcut> triggerRegistration;
@@ -91,7 +92,7 @@ namespace LordAshes
         {
             UnityEngine.Debug.Log("Extra Assets Registration Plugin: Is Active.");
 
-            if (!System.IO.Directory.Exists(Internal.pluginDirectory + "\\cache")) { System.IO.Directory.CreateDirectory(Internal.pluginDirectory + "\\cache"); }
+            if (!System.IO.Directory.Exists(Internal.cacheDirectory)) { System.IO.Directory.CreateDirectory(Internal.cacheDirectory); }
 
             Internal.self = this;
 
@@ -137,7 +138,7 @@ namespace LordAshes
             {
                 SystemMessage.DisplayInfoText("Looking For New Assets...");
                 Debug.Log("Extra Assets Registration Plugin: Deleting Cache");
-                foreach (string item in System.IO.Directory.EnumerateFiles(Internal.pluginDirectory + "\\cache"))
+                foreach (string item in System.IO.Directory.EnumerateFiles(Internal.cacheDirectory))
                 {
                     System.IO.File.Delete(item);
                 }
@@ -311,7 +312,7 @@ namespace LordAshes
                 {
                     // Delete cached assets
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Deleting Cache"); }
-                    foreach (string item in System.IO.Directory.EnumerateFiles(Internal.pluginDirectory + "\\cache"))
+                    foreach (string item in System.IO.Directory.EnumerateFiles(Internal.cacheDirectory))
                     {
                         System.IO.File.Delete(item);
                     }
@@ -336,7 +337,7 @@ namespace LordAshes
                     try { extraAsset.Name = asset.name; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
                     try { extraAsset.Description = asset.description; } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
                     try { extraAsset.CustomKind = ResolveCustomKind(asset.kind); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to " + asset.name); }
-                    try { extraAsset.Icon = FileAccessPlugin.Image.LoadSprite(Internal.pluginDirectory + "cache\\" + asset.id + ".png"); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set icon"); }
+                    try { extraAsset.Icon = FileAccessPlugin.Image.LoadSprite(Internal.cacheDirectory + "\\" + asset.id + ".png"); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set icon"); }
                     try { extraAsset.tags = asset.tags.Split(','); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set tags to " + asset.tags); }
                     try { extraAsset.BaseCallback = (nguid) => AssetHandler.CreateAssetBase(asset); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set base callback"); }
                     try { extraAsset.ModelCallback = (nguid) => AssetHandler.CreateAsset(asset); } catch (Exception) { Debug.Log("Extra Assets Registration Plugin: Unable to set name to model callback"); }
@@ -388,7 +389,7 @@ namespace LordAshes
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Updating Asset Cache File"); }
                 string json = JsonConvert.SerializeObject(AssetHandler.AssetsByFileLocation.Values.ToArray<Data.AssetInfo>(), Formatting.Indented);
                 AssetHandler.RectifyToStorageFormat(json);
-                FileAccessPlugin.File.WriteAllText(Internal.pluginDirectory + "cache\\AssetInfo.cache", json);
+                FileAccessPlugin.File.WriteAllText(Internal.cacheDirectory + "\\AssetInfo.cache", json);
             }
         }
 
