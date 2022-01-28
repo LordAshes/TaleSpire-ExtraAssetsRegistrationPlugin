@@ -8,6 +8,7 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 ## Change Log
 
 ```
+3.0.1: Moved cache to CustomData folder so other plugins can access the portraits and assetInfo.cache file
 3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment
 2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset
 2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer)
@@ -25,30 +26,7 @@ This plugin, like all others, is free but if you want to donate, use: http://198
 2.5.2: Optimized auras application.
 2.5.0: If asset has a high and low performance version in the asset bundle, will try to load asset based on the
        configured graphics capability settings. Default: low performance.
-2.4.2: Added optional delay between pasting slabs of a multi slab asset. Default 0. Set via R2ModMan config.
-2.4.1: Added support for "pasting" multi slab
-2.4.0: Added support for multiple slabs using json Slab file
-2.3.0: Exposes animation via Stat Messaging to other clients
-2.3.0: Animations don't need to be named Anim01 to Anim07 to use the hot key feature. The hot key feature will trigger
-       animations according to the animation clip order regardless of what the name is.
-2.2.0: Updated to latest EAL which has individual categories for Aura, Effects and Slabs
-2.1.0: Added support for slabs
-2.1.0: Added support for base specification for custom content
-2.0.0: Rewrite to support creature, effect, aura, transformation and audio directly in EAR without dependency on CMP.
-2.0.0: Exposed a lot more properties in the info.txt file. Some of these are preparation for future use.
-2.0.0: Slab support has been temporarily removed. Will be added back in next revision.
-1.7.0: Added support for slabs. Doesn't support custom tiles yet but now you can pull stabs out from the library.
-1.6.0: Reworked visibility code based on Hollo's TS base implementation
-1.5.0: Added code to implement visibility for EAR spawned assets
-1.3.1: Corrects spawned mini orientation so that facing is correct
-1.3.0: Changed how CMP Integration works and added support for CMP Transformation, CMP Aura and CMP Effect
-1.3.0: Added more logging during registry to identify issues with assetBundles that fail to register
-1.2.0: Added Soft Dependency Interface Module (SDIM) to access StatMessaging to allow removal of StatMessaging as a dependency.
-       if not using CMP integration then neither CMP nor StatMessaging is needed.
-1.2.0: Added code to prevent registration failure of an asset to prevent other assets from being registered.
-1.1.1: Added missing manifest dependency (StatMessaging). No plugin change
-1.1.0: Added integration with CMP support. Select mini and hold CTRL while selecting an asset in the library.
-1.0.1: Added code to ignore non-asset bundle assets
+...
 1.0.0: Initial release
 ```
 
