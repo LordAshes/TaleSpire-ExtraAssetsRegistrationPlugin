@@ -22,7 +22,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.0.1.0";
+        public const string Version = "3.2.0.0";
 
         private static class Internal
         {
@@ -66,6 +66,8 @@ namespace LordAshes
             public static float delayChainLoaderSupression = 3f;
             public static float delayAuraApplication = 5f;
             public static System.Guid subscriptionStatMessaging = System.Guid.Empty;
+
+            public static string defaultEncounterPointer = null;
 
             public static float delayPerSlab = 0f;
 
@@ -111,6 +113,8 @@ namespace LordAshes
             Internal.baseForAudio = Config.Bind("Settings", "Base For Audio", Internal.BaseTypeTriState.asPerAsset).Value;
             Internal.delayPerSlab = Config.Bind("Settings", "Delay Between Slab In Multi Slab Asset", 0).Value;
             Internal.delayChainLoaderSupression = Config.Bind("Settings", "Chain Loader Suppression Delay", 3.0f).Value;
+
+            Internal.defaultEncounterPointer = Config.Bind("Settings", "Default Encounter Pointer", "Minis/laDefaultEncounterPointer/laDefaultEncounterPointer.laDefaultEncounterPointer").Value;
 
             Internal.fractionalCharacter = Config.Bind("Settings", "Fractional Character", ".").Value;
  

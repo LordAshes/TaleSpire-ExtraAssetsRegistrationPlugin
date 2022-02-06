@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using Bounce.Unmanaged;
 using DataModel;
 using Newtonsoft.Json;
@@ -53,7 +54,7 @@ namespace LordAshes
                 bool newAssets = false;
                 foreach (string location in FileAccessPlugin.File.Catalog(false))
                 {
-                    bool isKnownAssetType = (System.IO.Path.GetExtension(location) == "") || (System.IO.Path.GetExtension(location).ToUpper() == ".SLAB");
+                    bool isKnownAssetType = "||.SLAB|.ENC|".Contains("|"+System.IO.Path.GetExtension(location).ToUpper()+"|");
                     if (isKnownAssetType && !assetsByLocation.ContainsKey(location+"."+System.IO.Path.GetFileNameWithoutExtension(location)))
                     {
                         // Add new asset to the asset cache
@@ -111,11 +112,17 @@ namespace LordAshes
                                     txt = "{\"kind\": \""+ System.IO.Path.GetExtension(location).Substring(1) + "\",\"id\": \"\",\"groupName\": \"Custom Content\",\"description\": \"" + System.IO.Path.GetFileName(location) + "\",\"name\": \"" + System.IO.Path.GetFileNameWithoutExtension(location) + "\",\"tags\": \"\"}";
                                 }
                             }
+                            else if (System.IO.Path.GetExtension(location).ToUpper() == ".ENC")
+                            {
+                                // ENC
+                                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: ENCOUNTER ("+location+")"); }
+                                txt = FileAccessPlugin.File.ReadAllText(location);
+                            }
 
                             Data.AssetInfo info = JsonConvert.DeserializeObject<Data.AssetInfo>(txt);
                             if (code != "") { info.code = code; }
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Info = " + JsonConvert.SerializeObject(info)); }
-                            info.location = location;
+                            info.location = (info.location=="") ? location : info.location;
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration: Location = " + info.location); }
                             switch (groupStrategy)
                             {
@@ -196,6 +203,7 @@ namespace LordAshes
                         catch (Exception x)
                         {
                             Debug.LogWarning("Extra Assets Registration: Content " + location + " does not seem to be an valid asset or is corrupt\r\n" + x);
+                            Debug.LogException(x);
                         }
                         if (ab != null) { ab.Unload(true); }
                     }
@@ -255,10 +263,21 @@ namespace LordAshes
                     }
                     return null;
                 }
+                else if (mode == "ENCOUNTER")
+                {
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Rerouting To DefaultEncounterPointer"); }
+                    mode = "EFFECT";
+                    assetInfo.name = "defaultencounterpointer";
+                    assetInfo.location = "Minis/ladefaultencounterpointer/ladefaultencounterpointer.ladefaultencounterpointer";
+                }
 
                 // Resolve AsetBundles
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Name = "+assetInfo.name); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Location = "+assetInfo.location); }
                 string assetName = System.IO.Path.GetExtension(assetInfo.location).Substring(1);
                 string assetLocation = System.IO.Path.GetDirectoryName(assetInfo.location) + "/" + System.IO.Path.GetFileNameWithoutExtension(assetInfo.location);
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Name = " + assetName); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Location = " + assetLocation); }
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Asset (" + assetInfo.kind + ") '" + assetName + "' From File '" + assetInfo.location + "'"); }
 
@@ -356,7 +375,7 @@ namespace LordAshes
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
-                if (mode == "CREATURE" || mode == "EFFECT" || mode == "TILE" || mode == "PROP")
+                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "TILE" || mode == "PROP")
                 {
                     // Let Core TS spawn new asset
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: " + assetInfo.kind + " Mode"); }
