@@ -35,6 +35,7 @@ namespace LordAshes
                 public string id { get; set; } = "";
                 public string name { get; set; } = "";
                 public string kind { get; set; } = "";
+                public string category { get; set; } = "";
                 public string groupName { get; set; } = "";
                 public string description { get; set; } = "";
                 public string tags { get; set; } = "";
@@ -59,6 +60,7 @@ namespace LordAshes
                         id = this.id,
                         name = this.name,
                         kind = this.kind,
+                        category = this.category,
                         groupName = this.groupName,
                         description = this.description,
                         tags = this.tags,

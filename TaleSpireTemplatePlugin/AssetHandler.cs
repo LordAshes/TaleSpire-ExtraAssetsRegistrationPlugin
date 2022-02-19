@@ -211,6 +211,16 @@ namespace LordAshes
                 return newAssets;
             }
 
+            public static List<string> GetHiddenGroups()
+            {
+                List<string> hidden = Internal.hiddenGroups;
+                foreach (Data.AssetInfo entry in AssetsByFileLocation.Values)
+                {
+                    if (entry.groupName.StartsWith("[") && !hidden.Contains(entry.groupName)) { hidden.Add(entry.groupName); }
+                }
+                return hidden;
+            }
+
             public static GameObject CreateAssetBase(Data.AssetInfo asset)
             {
                 string baseSetting = asset.assetBase.ToUpper();
@@ -236,13 +246,17 @@ namespace LordAshes
             public static GameObject CreateAsset(Data.AssetInfo assetInfo)
             {
                 string mode = assetInfo.kind.ToUpper();
-                if (Input.GetKey(KeyCode.LeftAlt)) { mode = "AURA"; }
-                if (Input.GetKey(KeyCode.RightAlt)) { mode = "FILTER"; }
-                if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) { mode = "TRANSFORMATION"; }
-                if (Input.GetKey(KeyCode.LeftShift)) { mode = "CREATURE"; }
-                if (Input.GetKey(KeyCode.RightShift)) { mode = "EFFECT"; }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating Asset Of Type " + assetInfo.kind); }
+                if (mode != "SLAB")
+                {
+                    if (Input.GetKey(KeyCode.LeftAlt)) { mode = "AURA"; }
+                    if (Input.GetKey(KeyCode.RightAlt)) { mode = "FILTER"; }
+                    if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) { mode = "TRANSFORMATION"; }
+                    if (Input.GetKey(KeyCode.LeftShift)) { mode = "CREATURE"; }
+                    if (Input.GetKey(KeyCode.RightShift)) { mode = "EFFECT"; }
+                }
 
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating Asset Of Type " + assetInfo.kind + " Using Mode " + mode); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Treating Asset As Type " + mode); }
                 if (mode == "SLAB")
                 {
                     try
@@ -357,16 +371,22 @@ namespace LordAshes
 
             public static bool LibrarySelectionMade(NGuid nguid, AssetDb.DbEntry.EntryKind kind)
             {
+                return LibrarySelectionMade(nguid, kind, null);
+            }
+
+            public static bool LibrarySelectionMade(NGuid nguid, AssetDb.DbEntry.EntryKind kind, string modeOverride)
+            {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Library Selection Made"); }
 
                 Data.AssetInfo assetInfo = FindAssetInfo(nguid);
 
                 string mode = assetInfo.kind.ToUpper();
-                if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) { mode = "AURA"; }
-                if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) { mode = "TRANSFORMATION"; }
-                if (Input.GetKey(KeyCode.LeftShift)) { mode = "CREATURE"; }
-                if (Input.GetKey(KeyCode.RightShift)) { mode = "EFFECT"; }
-
+                if (modeOverride != null) { mode = modeOverride; }
+                else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) { mode = "AURA"; }
+                else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) { mode = "TRANSFORMATION"; }
+                else if (Input.GetKey(KeyCode.LeftShift)) { mode = "CREATURE"; }
+                else if (Input.GetKey(KeyCode.RightShift)) { mode = "EFFECT"; }
+                
                 // Check to see if an asset is selected
                 CreatureBoardAsset asset;
                 CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out asset);
@@ -375,7 +395,7 @@ namespace LordAshes
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
-                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "TILE" || mode == "PROP")
+                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "TILE" || mode == "PROP" || mode == "SLAB")
                 {
                     // Let Core TS spawn new asset
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: " + assetInfo.kind + " Mode"); }

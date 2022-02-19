@@ -14,6 +14,15 @@ namespace LordAshes
     {
         public static class StatMessagingHandler
         {
+            public class SpawnRequest
+            {
+                public string kind { get; set; } = "Creature";
+                public NGuid assetNguid { get; set; } = NGuid.Empty;
+                public string name { get; set; } = "";
+                public Vector3 pos { get; set; } = Vector3.zero;
+                public Vector3 rot { get; set; } = Vector3.zero;
+            }
+
             public static void StatMessagingRequest(StatMessaging.Change[] changes)
             {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: "+changes.Length+" Changes Stat Message"); }
@@ -26,7 +35,7 @@ namespace LordAshes
                         if (change.action != StatMessaging.ChangeType.removed)
                         {
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Creating aura request"); }
-                            CreateAura(change.cid, change.key.Substring(change.key.IndexOf(".Aura.")+".Aura.".Length), new NGuid(change.value));
+                            CreateAura(change.cid, change.key.Substring(change.key.IndexOf(".Aura.") + ".Aura.".Length), new NGuid(change.value));
                         }
                         else
                         {
@@ -36,10 +45,10 @@ namespace LordAshes
                     }
                     else if (change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Anim"))
                     {
-                        if(change.value!="")
+                        if (change.value != "")
                         {
                             // Play Animation
-                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Play animation '"+change.value+"'"); }
+                            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Play animation '" + change.value + "'"); }
                             PlayAnimation(change.cid, change.value);
                         }
                         else
@@ -62,6 +71,35 @@ namespace LordAshes
                             // Stop Audio
                             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Stop audio"); }
                             StopAudio(change.cid);
+                        }
+                    }
+                    else if (change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Spawn") || change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Transform"))
+                    {
+                        try
+                        { 
+                            SpawnRequest spawn = JsonConvert.DeserializeObject<SpawnRequest>(change.value);
+                            Data.AssetInfo spawnInfo = null;
+                            if (spawn.name != "")
+                            {
+                                spawn.assetNguid = AssetHandler.FindAssetId(spawn.name);
+                            }
+                            if (spawn.assetNguid != NGuid.Empty)
+                            {
+                                spawnInfo = AssetHandler.FindAssetInfo(spawn.assetNguid);
+                                CreatureGuid cid = AssetHandler.SpawnCreature(spawnInfo, spawn.pos, spawn.rot, false);
+                                if (change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Transform"))
+                                {
+                                    AssetHandler.LibrarySelectionMade(spawn.assetNguid, AssetDb.DbEntry.EntryKind.Creature, "TRANSFORMATION");
+                                }
+                            }
+                            else
+                            {
+                                Debug.LogWarning("Extra Asssets Registration Plugin: Empty Spawn Request. Specify name or NGuid in request.");
+                            }
+                        }
+                        catch(Exception)
+                        {
+                            Debug.LogWarning("Extra Asssets Registration Plugin: Unable to process remote spawn request ("+change.value+").");
                         }
                     }
                     else if (change.key.EndsWith(ExtraAssetsRegistrationPlugin.Guid + ".Transform"))
