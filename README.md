@@ -3,16 +3,26 @@
 This unofficial TaleSpire allows custom assets to be registered with the core TS library allowing custom content to be accessed
 using the TS library like any core TS assets. Supports multiple settings for customizing the plugin.
 
-This plugin, like all others, is free but if you want to donate, use: http://198.91.243.185/TalespireDonate/Donate.php
+This plugin, like all others, is free but if you want to donate, use: http://LordAshes.ca/TalespireDonate/Donate.php
 
 ## Change Log
 
 ```
-3.0.1: Moved cache to CustomData folder so other plugins can access the portraits and assetInfo.cache file
-3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment
-2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset
-2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer)
-2.8.0: Added Encounter spawing (also know as Chain Loader) functionality
+3.3.0: Added support for Category to allow distinguishing Category and Kind. This allows, for example, Effect based minis
+       to be kind Effect but still show up in the Creature category.
+3.3.0: Added Stat Messaging interface to spawn and transform creatures allowing other plugins to make requets to EAR to
+       spawn and/or transform minis.
+3.3.0: Added support for hidden groups once EAL supports it.
+3.2.1: Bug Fix: Multi Slab.
+3.2.1: Bug Fix: Multi Slab Delay is now float.
+3.2.0: Fixed bug with text file Encounters. Encounters are now a new kind: Encounter.
+3.1.1: Added missing default pointer asset. No plugin change.
+3.1.0: Added support for encounters from text files (as opposed to asset bundles) similar to multi-slabs.
+3.0.1: Moved cache to CustomData folder so other plugins can access the portraits and assetInfo.cache file.
+3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment.
+2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset.
+2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer).
+2.8.0: Added Encounter spawing (also know as Chain Loader) functionality.
 2.7.3: Removed unused testing patch and removed dependency on Harmony Patching library.
 2.7.3: Updated Blood Filter to use mesh shape instead of material transparency making see through areas fully clear.
 2.7.2: Camera Filetrs support multiple simultaneous filters at once.
@@ -65,6 +75,8 @@ LCTRL+S = Slabs Import
 | Type           | Description                       |  Shader  | Can Stealth | Transparency |
 +----------------+-----------------------------------+----------+-------------+--------------+
 | Creature       | Creates a new mini                |    TS    |     Yes     |      No*     |
++----------------+-----------------------------------+----------+-------------+--------------+
+| Encounter      | Creates multi minis               |    TS    |     Yes     |      No*     |
 +----------------+----------------------------------------------+----------------------------+
 | Effect         | Creates a new mini                |    AB    |     No      |      Yes     |
 +----------------+----------------------------------------------+----------------------------+
@@ -253,7 +265,8 @@ while the content is JSON, the extension of the file remains txt. The conent sho
 ```
 {
   "name": "Assasin",
-  "kind": "Creature",
+  "kind": "Effect",
+  "category": "Creature",
   "groupName": "Human",
   "description": "Assasin",
   "tags": "Human,Rogue,Assasin",
@@ -285,7 +298,8 @@ while the content is JSON, the extension of the file remains txt. The conent sho
 ```
 
 Where "name" is the name of the asset. See Note 2 below.
-Where "kind" is always "Creature" at this point. This will be used in the future for things like Props and Tiles.
+Where "kind" determines how the mini is treated. Possibilities are: Creature, Aura, Effect, Audio, Filter, Slab, Encounter, Prop*, Tile*.
+Where "category" determines which category the asset is placed in. Possibilites are: Audio, AuraAndEffects, Creature, Prop, Slab*, Tile*.
 Where "groupName" is the name of the group in the library that contains the asset. See Note 1 below.
 Where "description" is a description of the asset. Not currently used. To be used in the future. 
 Where "tags" is a list of tags associated with the asset. Not currently used. To be used in the future. 
@@ -306,6 +320,8 @@ Note 1: Depending on the Extra Asset Registration plugin group settings (see abo
 		the asset will be placed in a Custom Content folder.
 		
 Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
+
+Note 3: Prop and Tile are future types. They are recognized by EAR but passed through to EAL directly. EAL does not support these yet.
 
 ### Making Creature Assets
 
@@ -379,7 +395,6 @@ It should be noted that unlike a single slab option, when using this method (for
 at the given position as soon as the slab is selected from the library. The user does not need to press CTRL+V and the
 user does not choose the location. The "position" specified in the json code is an absolute position of the slabs.
 
-
 ### Making Audio Assets
 
 Kind: Creature or Audio (see explanation below)
@@ -416,6 +431,32 @@ Encounter assets consist of a pointer and a list of assets that are to be loaded
    offset. This is repeated for each asset to be loaded. For example:
    
    "chainLoad": "Assasin,0,0,-2,0,0,0,Assasin,-1,0,-1,0,0,0,Assasin,1,0,-1,0,0,0"
+```
+
+Encounters can also be made without using Unity at all. An abridged version of the info.txt file can be saved as a text
+file with an ENC extension. In such a case, however, the kind need to be set to Encouneter. At a minimum the file needs
+to contain the kind, a name and the chainLoad properties. Encounters made this way use a default encounter pointer.
+For example:
+
+```
+{
+  "kind": "Encounter",
+  "groupName": "Encounters",
+  "description": "3 Assasins",
+  "name": "laEncounter02",
+  "tags": "Encounter, Assasins, 3",
+  "chainLoad": "Assasin,0,0,-2,0,0,0,Assasin,-1,0,-1,0,0,0,Assasin,1,0,-1,0,0,0",
+  "author": "Lord Ashes",
+  "version": "1.0",
+  "comment": ""
+}
+```
+Optionally a PNG file (128x128, No Compression) called "portrait.png" file can be includes to be used for the library entry
+for the encounter. Similar to asset bundles, the ENC file and the optional portrait file should be in a folder with the same
+name as the encounter file (without the ENC extension). For example:
+```
+TaleSpire_CustomData/Encounters/laEncounter02/laEncounter02.Enc
+TaleSpire_CustomData/Encounters/laEncounter02/portrait.png
 ```
 
 ### Making Sub-Selection Assets (Using Chain Loader)
@@ -501,6 +542,24 @@ it introduces two game objects which don't do anything at runtime.
 Follow the steps of the lazy method above but when the hand object have been positioned correctly, read the transform
 information (position and rotation) and use those numbers for the values following the Optimized method above. Delete
 the hand objects afterwards to end up with an optimized solution.
+
+
+## Hiding Groups
+
+In some cases it may be desirable to hide certain groups. For example, when playing medieval setting you may want to
+hide groups which include sci-fi assets. In addition, some plugins create extra groups for internal assets which are
+not intended to be used directly. For this purpose a hide function has been added. Currently it seems that there is an
+issue with EAL processing the hide list but as soon as EAL fixes the issue this function should start working.
+
+First, there is a configuration setting to turn this feature on and off. When creating assets that use such hidden
+groups, it may be benefitial to show these groups and thus the hide feature can be turned off (default on).
+
+Second, in the configuration there is a comma separated list of groups to hide. This can be used to hide valid groups
+as in the example of a fantasy campaign hiding sci-fi groups.
+
+Lastly, any group that starts with anm opening square bracket will automatically be hidden. This feature is intended
+for plugins that need to create assets which are not intended to be used directly. In such a case these plugins can
+place the assets in a group that starts with the opening square bracket and the group will be hidden. 
 
 
 ## Limitations
