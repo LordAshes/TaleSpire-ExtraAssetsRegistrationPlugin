@@ -8,6 +8,9 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
+3.4.0: Bug fix preventing spawning custom content
+3.4.0: Migrated interface to use Asset Data to enable camera filters (as well as mini spawns) to be triggered from other plugins
+3.3.1: Bug fix to restore mis-place Auras and Effects
 3.3.0: Added support for Category to allow distinguishing Category and Kind. This allows, for example, Effect based minis
        to be kind Effect but still show up in the Creature category.
 3.3.0: Added Stat Messaging interface to spawn and transform creatures allowing other plugins to make requets to EAR to
