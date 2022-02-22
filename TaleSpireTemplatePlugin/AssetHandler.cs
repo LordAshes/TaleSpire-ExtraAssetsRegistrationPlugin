@@ -448,13 +448,13 @@ namespace LordAshes
                     {
                         // Add aura
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Request Aura '" + auraName + "' Creation on " + asset.Creature.CreatureId); }
-                        StatMessaging.SetInfo(asset.Creature.CreatureId, ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName, nguid.ToString());
+                        AssetDataPlugin.SetInfo(asset.Creature.CreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName, nguid.ToString());
                     }
                     else
                     {
                         // Remove aura
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Requesting Aura '" + auraName + "' Removal on " + asset.Creature.CreatureId); }
-                        StatMessaging.ClearInfo(asset.Creature.CreatureId, ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName);
+                        AssetDataPlugin.ClearInfo(asset.Creature.CreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName);
                     }
                 }
                 else
@@ -613,7 +613,7 @@ namespace LordAshes
             CreaturePresenter.TryGetAsset((CreatureGuid)inputs[0], out asset);
             if (asset != null)
             {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: "+StatMessaging.GetCreatureName(asset)+" Self Destruct "); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: "+AssetDataPlugin.Legacy.GetCreatureName(asset)+" Self Destruct "); }
                 asset.RequestDelete();
             }
             else

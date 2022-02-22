@@ -40,6 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\AppData\Roaming\r2modmanPlus-local\TaleSpire\profiles\Modded\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="AssetDataPlugin">
+      <HintPath>..\..\TaleSpireAssetDataPlugin\Plugin\bin\Debug\AssetDataPlugin.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>D:\moddingtalespire-2.3.0\bepinexbin\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
@@ -81,8 +84,8 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="StatMessaging">
-      <HintPath>..\..\..\..\AppData\Roaming\r2modmanPlus-local\TaleSpire\profiles\Modded\BepInEx\plugins\LordAshes-StatMessagingPlugin\StatMessaging.dll</HintPath>
+    <Reference Include="SourceRole">
+      <HintPath>..\..\..\..\AppData\Roaming\r2modmanPlus-local\TaleSpire\profiles\Modded\BepInEx\plugins\LordAshes-AssetDataPlugin\SourceRole.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -166,7 +169,7 @@
     <Compile Include="Image.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SlabInfo.cs" />
-    <Compile Include="StatMessagingHandler.cs" />
+    <Compile Include="MessagingHandler.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="ExtraAssetRegistrationPlugin.cs" />
   </ItemGroup>
