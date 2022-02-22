@@ -240,18 +240,9 @@ namespace LordAshes
 
         private static void DestroyAura(CreatureGuid cid, string auraName)
         {
-            CreatureBoardAsset asset;
-            CreaturePresenter.TryGetAsset(cid, out asset);
-            if (asset != null)
-            {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Destroying previous '" + auraName + "' aura"); }
-                GameObject aura = GameObject.Find("CustomAura:" + cid + "." + auraName);
-                if (aura != null) { GameObject.Destroy(aura); }
-            }
-            else
-            {
-                Debug.Log("Extra Assets Registration Plugin: No valid creature selected from which to remove aura '" + auraName + "'");
-            }
+            if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Destroying previous '" + auraName + "' aura"); }
+            GameObject aura = GameObject.Find("CustomAura:" + cid + "." + auraName);
+            if (aura != null) { GameObject.Destroy(aura); }
         }
 
         public static void PlayAudio(CreatureGuid cid)
