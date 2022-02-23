@@ -407,20 +407,6 @@ namespace LordAshes
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: A Mini Is Selected"); }
                     SpawnCreature(assetInfo, Vector3.zero, Vector3.zero, true);
                 }
-                else if (mode == "FILTER")
-                {
-                    // Spawn filter
-                    if (GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location)) == null)
-                    {
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Spawning Camera Filter"); }
-                        CreateAura(CreatureGuid.Empty, System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location), nguid);
-                    }
-                    else
-                    {
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Removing Camera Filter"); }
-                        GameObject.Destroy(GameObject.Find("CustomAura:" + CreatureGuid.Empty.ToString() + "." + System.IO.Path.GetFileNameWithoutExtension(AssetsByFileLocation[assetInfo.location].location)));
-                    }
-                }
                 else if (asset != null && mode == "TRANSFORMATION")
                 {
                     // Replace currently selected asset
@@ -438,23 +424,24 @@ namespace LordAshes
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating '" + assetInfo.name + "'"); }
                     SpawnCreature(assetInfo, pos, rot);
                 }
-                else if (asset !=null && mode == "AURA")
+                else if ((asset !=null && mode == "AURA") || (mode=="FILTER"))
                 {
                     // Add To Currently Selected Asset
-                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Aura Mode"); }
+                    CreatureGuid cid = (asset != null) ? asset.Creature.CreatureId : CreatureGuid.Empty;
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: Aura/Filter Mode"); }
                     string auraName = System.IO.Path.GetFileNameWithoutExtension(assetInfo.location);
 
-                    if (GameObject.Find("CustomAura:" + asset.Creature.CreatureId + "." + auraName) == null)
+                    if (GameObject.Find("CustomAura:" + cid + "." + auraName) == null)
                     {
                         // Add aura
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Request Aura '" + auraName + "' Creation on " + asset.Creature.CreatureId); }
-                        AssetDataPlugin.SetInfo(asset.Creature.CreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName, nguid.ToString());
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Request Aura/Filter '" + auraName + "' Creation on " + cid); }
+                        AssetDataPlugin.SetInfo(cid.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName, nguid.ToString());
                     }
                     else
                     {
                         // Remove aura
-                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Requesting Aura '" + auraName + "' Removal on " + asset.Creature.CreatureId); }
-                        AssetDataPlugin.ClearInfo(asset.Creature.CreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName);
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Requesting Aura/Filter '" + auraName + "' Removal on " + cid); }
+                        AssetDataPlugin.ClearInfo(cid.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Aura." + auraName);
                     }
                 }
                 else
