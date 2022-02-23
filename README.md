@@ -8,6 +8,7 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
+3.4.2: Propagated camera filters through network like auras
 3.4.1: Minor tweaks for adding and removing camera filters via external interface
 3.4.0: Bug fix preventing spawning custom content
 3.4.0: Migrated interface to use Asset Data to enable camera filters (as well as mini spawns) to be triggered from other plugins
