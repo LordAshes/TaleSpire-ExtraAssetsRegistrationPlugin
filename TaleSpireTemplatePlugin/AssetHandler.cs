@@ -321,7 +321,8 @@ namespace LordAshes
                     model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
                 }
                 ab.Unload(false);
-                model.transform.eulerAngles = new Vector3(0, 180, 0);
+                // model.transform.eulerAngles = new Vector3(0, 180, 0);
+                model.transform.eulerAngles = new Vector3(0, 0, 0);
 
                 if (mode != "AURA" && mode != "EFFECT" && mode != "FILTER")
                 {
@@ -393,7 +394,7 @@ namespace LordAshes
                 Vector3 pos = (asset != null) ? asset.Creature.transform.position : Vector3.zero;
                 Vector3 rot = (asset != null) ? asset.Creature.transform.eulerAngles : Vector3.zero;
 
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' ("+nguid.ToString()+") Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
                 if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "TILE" || mode == "PROP" || mode == "SLAB")
                 {
