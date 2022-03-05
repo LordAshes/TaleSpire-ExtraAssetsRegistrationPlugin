@@ -30,6 +30,13 @@ namespace LordAshes
                 public string positionOffset { get; set; } = "0.0,0.0,0.0";
             }
 
+            public class LinkRequest
+            {
+                public string key { get; set; } = "";
+                public string value { get; set; } = "";
+                public bool legacy { get; set; } = true;
+            }
+
             public class AssetInfo
             {
                 public string id { get; set; } = "";
@@ -52,6 +59,7 @@ namespace LordAshes
                 public string assetBase { get; set; } = "DEFAULT";
                 public MeshAdjustments mesh { get; set; } = new MeshAdjustments();
                 public Locations locations { get; set; } = new Locations();
+                public LinkRequest[] linkRequests { get; set; } = new LinkRequest[] { };
 
                 public Data.AssetInfo Clone()
                 {
@@ -76,7 +84,8 @@ namespace LordAshes
                         location = this.location,
                         assetBase = this.assetBase,
                         mesh = this.mesh,
-                        locations = this.locations
+                        locations = this.locations,
+                        linkRequests = this.linkRequests
                     };
                 }
             }

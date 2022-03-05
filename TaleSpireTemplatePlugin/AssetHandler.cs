@@ -321,8 +321,7 @@ namespace LordAshes
                     model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
                 }
                 ab.Unload(false);
-                // model.transform.eulerAngles = new Vector3(0, 180, 0);
-                model.transform.eulerAngles = new Vector3(0, 0, 0);
+                if (mode != "AURA") { model.transform.eulerAngles = Internal.defaultMiniOrientation; } else { model.transform.eulerAngles = Internal.defaultAuraOrientation; }
 
                 if (mode != "AURA" && mode != "EFFECT" && mode != "FILTER")
                 {
@@ -457,9 +456,16 @@ namespace LordAshes
             {
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini "+cid+" of type "+nguid+" Placed."); }
                 Data.AssetInfo assetInfo = AssetHandler.FindAssetInfo(nguid);
-                if (assetInfo.chainLoad != null && chainLoaderInProgress == false)
+                if (assetInfo != null)
                 {
-                    Internal.self.StartCoroutine("ChainLoader", new object[] { assetInfo, cid });
+                    if (assetInfo.chainLoad != null && chainLoaderInProgress == false)
+                    {
+                        Internal.self.StartCoroutine("ChainLoader", new object[] { assetInfo, cid });
+                    }
+                    if(assetInfo.linkRequests!=null)
+                    {
+                        pluginReference.StartCoroutine("ProcessLinqRequests", new object[] { cid, assetInfo.linkRequests });
+                    }
                 }
             }
 
@@ -687,6 +693,17 @@ namespace LordAshes
             yield return new WaitForSeconds(Internal.delayChainLoaderSupression);
             if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Re-enabling Chain Loader"); }
             AssetHandler.chainLoaderInProgress = false;
+        }
+
+        public IEnumerator ProcessLinqRequests(object[] inputs)
+        {
+            yield return new WaitForSeconds(Internal.delayProcessingLinks);
+            CreatureGuid cid = (CreatureGuid)inputs[0];
+            Data.LinkRequest[] linkRequests = (Data.LinkRequest[])inputs[1];
+            foreach (Data.LinkRequest request in linkRequests)
+            {
+                AssetDataPlugin.SetInfo(cid.ToString(), request.key, request.value, request.legacy);
+            }
         }
 
         public IEnumerator DisplayMessage(object[] inputs)

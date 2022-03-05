@@ -23,7 +23,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.4.3.0";
+        public const string Version = "3.5.5.0";
 
         private static class Internal
         {
@@ -73,6 +73,7 @@ namespace LordAshes
 
             public static float delayChainLoaderSupression = 3f;
             public static float delayAuraApplication = 5f;
+            public static float delayProcessingLinks = 1f;
 
             public static string defaultEncounterPointer = null;
 
@@ -95,6 +96,9 @@ namespace LordAshes
             public static GraphicsCapabilities graphics = GraphicsCapabilities.LowPerformance;
 
             public static List<string> hiddenGroups = new List<string>();
+
+            public static Vector3 defaultMiniOrientation = new Vector3(0, 180, 0);
+            public static Vector3 defaultAuraOrientation = new Vector3(0, 180, 0);
         }
 
         /// <summary>
@@ -127,6 +131,7 @@ namespace LordAshes
             Internal.defaultEncounterPointer = Config.Bind("Settings", "Default Encounter Pointer", "Minis/laDefaultEncounterPointer/laDefaultEncounterPointer.laDefaultEncounterPointer").Value;
             Internal.fractionalCharacter = Config.Bind("Settings", "Fractional Character", ".").Value;
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
+            Internal.delayProcessingLinks = Config.Bind("Startup", "Link Processing Delay In Seconds", 1.0f).Value;
 
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
 
