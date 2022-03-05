@@ -8,9 +8,13 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
-3.4.3: Changed orientation of aura assets
-3.4.2: Propagated camera filters through network like auras
-3.4.1: Minor tweaks for adding and removing camera filters via external interface
+3.5.5: Exposed mini and aura orientation to configuration
+3.5.1: Fixed orientation bug
+3.5.0: Added linkRequests option into Info.txt file allowing triggerin of AssetData/StatMessaging trigger on creature spawn.
+3.5.0: Moved demo assets to their own pack.
+3.4.3: Synced asset and aura orientation
+3.4.2: Minor tweaks for networking camera filter addition and removal
+3.4.1: Minor tweaks for external interface to support addition and removal of camera filters
 3.4.0: Bug fix preventing spawning custom content
 3.4.0: Migrated interface to use Asset Data to enable camera filters (as well as mini spawns) to be triggered from other plugins
 3.3.1: Bug fix to restore mis-place Auras and Effects
@@ -26,22 +30,6 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 3.1.0: Added support for encounters from text files (as opposed to asset bundles) similar to multi-slabs.
 3.0.1: Moved cache to CustomData folder so other plugins can access the portraits and assetInfo.cache file.
 3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment.
-2.9.0: Subseclection fucntionality added which allows asset bundles to have variants of the asset.
-2.8.1: Added Unity Project assets folder sample for making Encounters (including the animated pointer).
-2.8.0: Added Encounter spawing (also know as Chain Loader) functionality.
-2.7.3: Removed unused testing patch and removed dependency on Harmony Patching library.
-2.7.3: Updated Blood Filter to use mesh shape instead of material transparency making see through areas fully clear.
-2.7.2: Camera Filetrs support multiple simultaneous filters at once.
-2.7.2: Camera Filters can be removed by re-selecting the camera filter.
-2.7.2: Camera Filters position fixed.
-2.7.1: Added pass-thru for EAL TILE and PROP call-backs. 
-2.7.0: Preview version of camera filter support.
-2.7.0: Added foundation support for asset variants. To be added in an upcoming version.
-2.7.0: Added more logging during registration step.
-2.6.0: Internal version for testing. Not released.
-2.5.2: Optimized auras application.
-2.5.0: If asset has a high and low performance version in the asset bundle, will try to load asset based on the
-       configured graphics capability settings. Default: low performance.
 ...
 1.0.0: Initial release
 ```
@@ -103,31 +91,7 @@ LCTRL+S = Slabs Import
 
 ### Demo Assets
 
-Under "Human" you will find an "Assasin" (icons with brown leather hooded outfit). The assasin has animations and poses.
-The assasin starts in animation 1. The first two animations are very subtle and may look like poses. The third animation
-is a static ready pose. Animation 4 is a kick attack. Animation 5 is a spell attack and animation 6 is a death animation.
-You can access each one of these by selecting the assasin on the board and pressing LEFT ALT plus 1 thru 6.
-The assasin also has a battle cry which you can play with LEFT ALT+9. Plugin must be set to High Graphics Capabilities
-in order to be able to trigger animations. Otherwise the non-animated version of the sample asset is used.
-
-Under "Tavern Songs" you will find "Cockerel". When you place this asset on the board it will look like a speaker. You
-can hide it using Stealth so that your player's don't see it. When selected on the board, you can press LEFT ALT + 9 to
-play the music. It is a tavern song about a rooster. If you think the song is about anything else, you have a dirty mind.
-You can use LEFT ALT + 0 to stop playing the music.
-
-Under "Camera Filters" you will find "Blood Filter" and "Slime Filter". When you select this asset, it will add the
-corresponding camera filter to the camera. The camera filter will move with the camera.
-
-Under the Tile section of the library, under the "Custom Content" group you will find a "Temple01" sample slab.
-
-Under "Encounters" is a sample asset which loads 3 assassins, demonstrating the encounter load function.
-
-Under "Fey" is a sample asset which uses sub-selection. When you drop this asset to the board you will have a sub-choice
-of two variations which, in this case, change the colour/texture of the clothing that the fey is wearing.
-
-Under "Weapons" (of the Creature category) you will find two weapons (a club and a morningstar). Each has a right hand
-and left hand version. These are aura weapons which can be added to minis by spawning then while holding ALT. 
-
+Demo assets have been moved to their own pack. Search for "Extra Asset Registration Demo Assets".
 
 ### Keyboard Hotkeys
 
@@ -300,6 +264,14 @@ while the content is JSON, the extension of the file remains txt. The conent sho
     "rotationOffset": "0.0,0.0,0.0",
     "positionOffset": "0.0,0.0,0.0"
   }
+  "linkRequests":
+  [
+	{
+		"key": "org.lordashes.plugins.light",
+		"value": "Ball(10')",
+		"legacy": true
+	}
+  ]
 }
 ```
 
@@ -320,6 +292,10 @@ Where "size" determine the GM Tools Size of the asset (e.g. 0.5, 1, 2, 4).
 Where "assetBase" determines the "recommended" base setting for the asset (None, Default or a base file).
 Where "locations" defines the positiona and rotation offset for various points on the asset. *For aura anchors and future use.*
 Where "meshAdjustments" defines the mesh size adjustments and mesh offsets.
+
+Where "linkRquests" sends out one or more AssetData/StatMessaging requests using the asset as the source and setting the indicated
+      key to the indicated value. If legacy is true then it write a Stat Messaging message otherwise it uses a Asset Data message.
+      Used to trigger other plugins on creature spawn such as light, aura, icons, states, etc.	  
 
 Note 1: Depending on the Extra Asset Registration plugin group settings (see above) the groupName may be ignored
         when determining the folder in which the asset will be placed in the library. In such case, as noted above,
