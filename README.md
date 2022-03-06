@@ -8,6 +8,7 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
+3.5.6: Bug fix for exposing mini and aura orientation to configuration
 3.5.5: Exposed mini and aura orientation to configuration
 3.5.1: Fixed orientation bug
 3.5.0: Added linkRequests option into Info.txt file allowing triggerin of AssetData/StatMessaging trigger on creature spawn.
