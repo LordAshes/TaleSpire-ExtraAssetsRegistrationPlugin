@@ -321,7 +321,7 @@ namespace LordAshes
                     model = ab.LoadAsset<GameObject>(ab.GetAllAssetNames()[0]);
                 }
                 ab.Unload(false);
-                if (mode != "AURA") { model.transform.eulerAngles = Internal.defaultMiniOrientation; } else { model.transform.eulerAngles = Internal.defaultAuraOrientation; }
+                if (mode != "AURA") { model.transform.eulerAngles = Utility.GetV3(Internal.defaultMiniOrientation); } else { model.transform.eulerAngles = Utility.GetV3(Internal.defaultAuraOrientation); }
 
                 if (mode != "AURA" && mode != "EFFECT" && mode != "FILTER")
                 {

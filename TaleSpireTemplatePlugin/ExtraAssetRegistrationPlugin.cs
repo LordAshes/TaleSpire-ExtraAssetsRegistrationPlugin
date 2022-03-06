@@ -23,7 +23,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.5.5.0";
+        public const string Version = "3.5.6.0";
 
         private static class Internal
         {
@@ -97,8 +97,8 @@ namespace LordAshes
 
             public static List<string> hiddenGroups = new List<string>();
 
-            public static Vector3 defaultMiniOrientation = new Vector3(0, 180, 0);
-            public static Vector3 defaultAuraOrientation = new Vector3(0, 180, 0);
+            public static string defaultMiniOrientation = "0,180,0";
+            public static string defaultAuraOrientation = "0,180,0";
         }
 
         /// <summary>
@@ -113,11 +113,11 @@ namespace LordAshes
 
             Internal.self = this;
 
-            Internal.graphics = Config.Bind("Settings", "Device Graphics Capabilities", Internal.GraphicsCapabilities.HighPerformance).Value;
-
             Internal.triggerRegistration = Config.Bind("Keyboard Shortcuts", "Manual Seek For Assets", new KeyboardShortcut(KeyCode.A, KeyCode.RightControl));
             Internal.triggerSlabImport = Config.Bind("Keyboard Shortcuts", "Slab or Multi Slab Importer", new KeyboardShortcut(KeyCode.S, KeyCode.LeftControl));
             Internal.triggerManualAuraApplication = Config.Bind("Keyboard Shortcuts", "Manual Aura Application Keyboard Shortcut", new KeyboardShortcut(KeyCode.R, KeyCode.RightControl));
+
+            Internal.graphics = Config.Bind("Settings", "Device Graphics Capabilities", Internal.GraphicsCapabilities.HighPerformance).Value;
 
             AssetHandler.Initialize(this, Config.Bind("Settings", "Organization Settings", Data.AssetGroups.custom).Value);
 
@@ -130,8 +130,12 @@ namespace LordAshes
             Internal.delayChainLoaderSupression = Config.Bind("Settings", "Chain Loader Suppression Delay", 3.0f).Value;
             Internal.defaultEncounterPointer = Config.Bind("Settings", "Default Encounter Pointer", "Minis/laDefaultEncounterPointer/laDefaultEncounterPointer.laDefaultEncounterPointer").Value;
             Internal.fractionalCharacter = Config.Bind("Settings", "Fractional Character", ".").Value;
+            Internal.delayProcessingLinks = Config.Bind("Settings", "Link Processing Delay In Seconds", 1.0f).Value;
+
+            Internal.defaultMiniOrientation = Config.Bind("Settings", "Spawn Mini Orientation", "0,180,0").Value;
+            Internal.defaultAuraOrientation = Config.Bind("Settings", "Spawn Aura Orientation", "0,180,0").Value;
+
             Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
-            Internal.delayProcessingLinks = Config.Bind("Startup", "Link Processing Delay In Seconds", 1.0f).Value;
 
             Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
 
@@ -292,7 +296,7 @@ namespace LordAshes
 
             // Register Assets
             ExtraAssetPlugin.CoreAssetPrefixCallbacks.Add(ExtraAssetsRegistrationPlugin.Guid, (nguid, kind) => AssetHandler.LibrarySelectionMade(nguid, kind));
-            if (Config.Bind("Setting", "Hide Groups", true).Value == true)
+            if (Config.Bind("Settings", "Hide Groups", true).Value == true)
             {
                 ExtraAssetPlugin.HiddenGroups = AssetHandler.GetHiddenGroups(); 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high)
