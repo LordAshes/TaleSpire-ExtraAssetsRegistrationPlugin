@@ -33,13 +33,15 @@ namespace LordAshes
                 if (Internal.boardState != Internal.BoardState.BoardReady)
                 {
                     // Add only non-null requests
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { if (change != null) { Debug.Log("Extra Assets Registration Plugin: Adding to backlog"); } }
                     if (change != null) { backlog.Add(change); }
                 }
                 // Null change when board is ready means process backlog
                 else if(change==null)
                 {
                     // Process each message in the backlog
-                    foreach(AssetDataPlugin.DatumChange datumChange in backlog)
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { if (change != null) { Debug.Log("Extra Assets Registration Plugin: Process backlog request"); } }
+                    foreach (AssetDataPlugin.DatumChange datumChange in backlog)
                     {
                         MessagingRequest(datumChange);
                     }
@@ -48,6 +50,7 @@ namespace LordAshes
                 // Porcess individual messages
                 else
                 {
+                    if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { if (change != null) { Debug.Log("Extra Assets Registration Plugin: Remote request"); } }
                     if (change.key.StartsWith(ExtraAssetsRegistrationPlugin.Guid + ".Aura."))
                     {
                         if (change.action != AssetDataPlugin.ChangeAction.remove)
@@ -119,6 +122,10 @@ namespace LordAshes
                         {
                             Debug.LogWarning("Extra Asssets Registration Plugin: Unable to process remote spawn request (" + change.value + ").");
                         }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Extra Asssets Registration Plugin: Unrecognized message request");
                     }
                 }
             }
@@ -223,7 +230,7 @@ namespace LordAshes
                         model.transform.SetParent(asset.BaseLoader.LoadedAsset.transform);
                         asset.BaseLoader.LoadedAsset.transform.eulerAngles = worldRot;
                     }
-                    else
+                    else if(cid==CreatureGuid.Empty)
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Applying filter to camera"); }
                         Vector3 pos = new Vector3(float.Parse(assetInfo.mesh.positionOffset.Split(',')[0]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[1]), float.Parse(assetInfo.mesh.positionOffset.Split(',')[2]));
@@ -231,6 +238,11 @@ namespace LordAshes
                         model.transform.position = (Camera.main.transform.position + pos);
                         model.transform.eulerAngles = (Camera.main.transform.eulerAngles + rot);
                         model.transform.SetParent(Camera.main.transform);
+                    }
+                    else
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Invalid Asset Specified. Probably A Deleted Asset."); }
+                        GameObject.Destroy(model);
                     }
                     model.name = "CustomAura:" + cid.ToString() + "." + auraName;
                     break;
