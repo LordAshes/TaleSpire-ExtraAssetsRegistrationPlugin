@@ -32,7 +32,11 @@ Click on the mesh and ensure the following settings in the Inspector.
 
 Depending on the imported objects you may be able to extract the materials and texture from the object or you may need to import them manually.
 If you are using the recommended folder structure the import materials into the materials folder and textures into the texture folder.
-Click on each Texture and ensure, in the Inspector, that each texture is Read/Write. This is necessary for the asset to work correctly.
+Click on each Texture and ensure, in the Inspector, that:
+
+- Read/Write is checked (Required)
+
+- SRGB is checked for the diffuse texture
 
 ## 4. Place Asset In Scene
 
