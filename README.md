@@ -8,7 +8,9 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
-3.5.6: Bug fix for exposing mini and aura orientation to configuration
+3.5.8: Bug fix to prevent Link Request from previous assets from being added to successive assets
+3.5.7: Bug fix to remove auras on deleted minis coming back on board load
+3.5.6: Bug fix for explosing orintation to config
 3.5.5: Exposed mini and aura orientation to configuration
 3.5.1: Fixed orientation bug
 3.5.0: Added linkRequests option into Info.txt file allowing triggerin of AssetData/StatMessaging trigger on creature spawn.
@@ -305,6 +307,8 @@ Note 1: Depending on the Extra Asset Registration plugin group settings (see abo
 Note 2:	The Name (or partial name if too long) is displayed on the asset portrait if the default portrait is used.
 
 Note 3: Prop and Tile are future types. They are recognized by EAR but passed through to EAL directly. EAL does not support these yet.
+
+Note 4: If a property is to use the default then don't set it. This will make it use the default.
 
 ### Making Creature Assets
 
