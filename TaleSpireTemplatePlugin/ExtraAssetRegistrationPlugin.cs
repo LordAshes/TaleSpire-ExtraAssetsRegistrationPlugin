@@ -23,7 +23,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.5.7.0";
+        public const string Version = "3.5.8.0";
 
         private static class Internal
         {
@@ -74,6 +74,7 @@ namespace LordAshes
             public static float delayChainLoaderSupression = 3f;
             public static float delayAuraApplication = 5f;
             public static float delayProcessingLinks = 1f;
+            public static float delayPostDrop = 1f;
 
             public static string defaultEncounterPointer = null;
 

@@ -454,19 +454,8 @@ namespace LordAshes
 
             public static void LibrarySelectionMiniPlaced(NGuid nguid, CreatureGuid cid)
             {
-                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini "+cid+" of type "+nguid+" Placed."); }
-                Data.AssetInfo assetInfo = AssetHandler.FindAssetInfo(nguid);
-                if (assetInfo != null)
-                {
-                    if (assetInfo.chainLoad != null && chainLoaderInProgress == false)
-                    {
-                        Internal.self.StartCoroutine("ChainLoader", new object[] { assetInfo, cid });
-                    }
-                    if(assetInfo.linkRequests!=null)
-                    {
-                        pluginReference.StartCoroutine("ProcessLinqRequests", new object[] { cid, assetInfo.linkRequests });
-                    }
-                }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini "+cid+" Placed."); }
+                Internal.self.StartCoroutine("LibrarySelectionMiniPlacedDelayed", new object[] { cid, chainLoaderInProgress, Internal.delayPostDrop });
             }
 
             public static CreatureGuid SpawnCreature(Data.AssetInfo asset, Vector3 pos, Vector3 rot, bool initalHidden = false)
@@ -530,6 +519,7 @@ namespace LordAshes
                     if (seekAssetInfo.id == nguid.ToString())
                     {
                         if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Custom Asset Recognized"); }
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Found Custom Asset "+JsonConvert.SerializeObject(seekAssetInfo)); }
                         return seekAssetInfo.Clone();
                     }
                 }
@@ -598,6 +588,35 @@ namespace LordAshes
                 return json;
             }
         }
+
+        public IEnumerator LibrarySelectionMiniPlacedDelayed(object[] inputs)
+        {
+            yield return new WaitForSeconds((float)inputs[2]);
+            CreatureBoardAsset asset = null;
+            CreaturePresenter.TryGetAsset((CreatureGuid)inputs[0], out asset);
+            if (asset != null)
+            {
+                CreatureGuid cid = (CreatureGuid)asset.Creature.CreatureId;
+                NGuid nguid = asset.BoardAssetId;
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mini " + cid + " of type " + nguid + " Placed."); }
+
+                Data.AssetInfo assetInfo = AssetHandler.FindAssetInfo(nguid);
+                if (assetInfo != null)
+                {
+                    if (assetInfo.chainLoad != null && (bool)inputs[1] == false)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Processing Chain Loader: " + assetInfo.chainLoad); }
+                        Internal.self.StartCoroutine("ChainLoader", new object[] { assetInfo, cid });
+                    }
+                    if (assetInfo.linkRequests != null && assetInfo.linkRequests.Length > 0)
+                    {
+                        if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Processing Link Request: " + JsonConvert.SerializeObject(assetInfo.linkRequests)); }
+                        Internal.self.StartCoroutine("ProcessLinqRequests", new object[] { cid, assetInfo.linkRequests });
+                    }
+                }
+            }
+        }
+
 
         public IEnumerator DestroyAssetAfterTimeSpan(object[] inputs)
         {
@@ -702,6 +721,7 @@ namespace LordAshes
             Data.LinkRequest[] linkRequests = (Data.LinkRequest[])inputs[1];
             foreach (Data.LinkRequest request in linkRequests)
             {
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Processing Link: Cid:"+ cid.ToString()+", Key:"+request.key+", Value:"+ request.value+", Legacy:"+ request.legacy); }
                 AssetDataPlugin.SetInfo(cid.ToString(), request.key, request.value, request.legacy);
             }
         }
