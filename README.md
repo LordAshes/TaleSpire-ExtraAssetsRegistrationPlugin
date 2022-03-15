@@ -8,6 +8,8 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
+3.5.9: Added random roll function
+3.5.9: Added better pass-thru check for foreign language
 3.5.8: Bug fix to prevent Link Request from previous assets from being added to successive assets
 3.5.7: Bug fix to remove auras on deleted minis coming back on board load
 3.5.6: Bug fix for explosing orintation to config
