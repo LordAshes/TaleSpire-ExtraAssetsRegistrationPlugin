@@ -23,7 +23,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.5.8.0";
+        public const string Version = "3.5.9.0";
 
         private static class Internal
         {
@@ -196,6 +196,21 @@ namespace LordAshes
                     StartCoroutine("DelayedAuraApplication", new object[] { Internal.delayAuraApplication });
                 }
 
+                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.BackQuote, KeyCode.LeftAlt))) 
+                {
+                    CreatureBoardAsset asset = null;
+                    CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out asset);
+                    if (asset != null)
+                    {
+                        Animation animation = asset.GetComponentInChildren<Animation>();
+                        List<AnimationState> anims = (new List<AnimationState>(animation.Cast<AnimationState>()));
+                        System.Random rnd = new System.Random();
+                        int pick = rnd.Next(1, anims.Count()+1);
+                        Debug.Log("Extra Assets Registration Plugin: Playing Random Anim "+pick+" (From Between 1 And "+anims.Count()+")");
+                        AssetDataPlugin.ClearInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim");
+                        AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", pick.ToString());
+                    }
+                }
                 if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha1, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "1"); }
                 if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha2, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "2"); }
                 if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha3, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "3"); }

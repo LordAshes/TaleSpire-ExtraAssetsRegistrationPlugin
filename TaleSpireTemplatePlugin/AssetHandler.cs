@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace LordAshes
@@ -395,7 +396,7 @@ namespace LordAshes
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' ("+nguid.ToString()+") Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
-                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "TILE" || mode == "PROP" || mode == "SLAB")
+                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "SLAB" || mode == AssetDb.DbEntry.EntryKind.Tile.ToString().ToUpper() || mode == AssetDb.DbEntry.EntryKind.Prop.ToString().ToUpper())
                 {
                     // Let Core TS spawn new asset
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: " + assetInfo.kind + " Mode"); }
