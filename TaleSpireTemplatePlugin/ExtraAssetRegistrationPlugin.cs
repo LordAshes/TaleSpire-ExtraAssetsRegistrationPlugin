@@ -23,7 +23,7 @@ namespace LordAshes
         // Plugin info
         public const string Name = "Extra Assets Registration Plug-In";
         public const string Guid = "org.lordashes.plugins.extraassetsregistration";
-        public const string Version = "3.5.9.0";
+        public const string Version = "3.7.0.0";
 
         private static class Internal
         {
@@ -62,6 +62,10 @@ namespace LordAshes
             public static ConfigEntry<KeyboardShortcut> triggerRegistration;
             public static ConfigEntry<KeyboardShortcut> triggerSlabImport;
             public static ConfigEntry<KeyboardShortcut> triggerManualAuraApplication;
+            public static ConfigEntry<KeyboardShortcut>[] triggerAnimation;
+            public static ConfigEntry<KeyboardShortcut> triggerNamedAnimation;
+            public static ConfigEntry<KeyboardShortcut> triggerSound;
+            public static ConfigEntry<KeyboardShortcut> triggerAllStop;
 
             public static float auraSolidifcationDelay = 5f;
 
@@ -94,6 +98,8 @@ namespace LordAshes
 
             public static string fractionalCharacter = ".";
 
+            public static Dictionary<string,string> languageModeTranslation = new Dictionary<string, string>();
+
             public static GraphicsCapabilities graphics = GraphicsCapabilities.LowPerformance;
 
             public static List<string> hiddenGroups = new List<string>();
@@ -108,15 +114,32 @@ namespace LordAshes
         /// </summary>
         void Awake()
         {
-            UnityEngine.Debug.Log("Extra Assets Registration Plugin: Is Active.");
+            Internal.self = this;
+
+            Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
+
+            UnityEngine.Debug.Log("Extra Assets Registration Plugin: "+this.GetType().AssemblyQualifiedName+" Is Active (Diagnostics="+ Internal.showDiagnostics.ToString()+ ")");
 
             if (!System.IO.Directory.Exists(Internal.cacheDirectory)) { System.IO.Directory.CreateDirectory(Internal.cacheDirectory); }
-
-            Internal.self = this;
 
             Internal.triggerRegistration = Config.Bind("Keyboard Shortcuts", "Manual Seek For Assets", new KeyboardShortcut(KeyCode.A, KeyCode.RightControl));
             Internal.triggerSlabImport = Config.Bind("Keyboard Shortcuts", "Slab or Multi Slab Importer", new KeyboardShortcut(KeyCode.S, KeyCode.LeftControl));
             Internal.triggerManualAuraApplication = Config.Bind("Keyboard Shortcuts", "Manual Aura Application Keyboard Shortcut", new KeyboardShortcut(KeyCode.R, KeyCode.RightControl));
+            Internal.triggerAnimation = new ConfigEntry<KeyboardShortcut>[8];
+            for(int a=0; a<=7; a++)
+            {
+                if (a == 0) 
+                {
+                    Internal.triggerAnimation[a] = Config.Bind("Keyboard Shortcuts", "Activate Random Animation Keyboard Shortcut", new KeyboardShortcut(KeyCode.BackQuote, KeyCode.LeftAlt));
+                }
+                else
+                {
+                    Internal.triggerAnimation[a] = Config.Bind("Keyboard Shortcuts", "Activate Animation "+a+"Keyboard Shortcut", new KeyboardShortcut((KeyCode)(48+a), KeyCode.LeftAlt));
+                }
+            }
+            Internal.triggerNamedAnimation = Config.Bind("Keyboard Shortcuts", "Activated Dialog Entry Animation Keyboard Shortcut", new KeyboardShortcut(KeyCode.Alpha8, KeyCode.LeftAlt));
+            Internal.triggerSound = Config.Bind("Keyboard Shortcuts", "Activated Audio Keyboard Shortcut", new KeyboardShortcut(KeyCode.Alpha9, KeyCode.LeftAlt));
+            Internal.triggerAllStop = Config.Bind("Keyboard Shortcuts", "Stop Animation And Audio Keyboard Shortcut", new KeyboardShortcut(KeyCode.Alpha0, KeyCode.LeftAlt));
 
             Internal.graphics = Config.Bind("Settings", "Device Graphics Capabilities", Internal.GraphicsCapabilities.HighPerformance).Value;
 
@@ -136,9 +159,15 @@ namespace LordAshes
             Internal.defaultMiniOrientation = Config.Bind("Settings", "Spawn Mini Orientation", "0,180,0").Value;
             Internal.defaultAuraOrientation = Config.Bind("Settings", "Spawn Aura Orientation", "0,180,0").Value;
 
-            Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
+            Dictionary<string, string> replacements = new Dictionary<string, string>();
+            foreach (string replacement in Config.Bind("Language", "Mode Translations", "AÜRA=AURA,AÜDIÖ=AUDIO,CRÉATURE=CREATURE,ÉNCÖÜNTER=ENCOUNTER,ÉFFECT=EFFECT,FîLTER=FILTER,PRÖP=PROP,SLAß=SLAB,TîLE=TILE,TRANSFÖRMATîÖN=TRANSFORMATION").Value.Split(','))
+            {
+                string[] kvp = replacement.Split('=');
+                Internal.languageModeTranslation.Add(kvp[0], kvp[1]);
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Transaltion: "+kvp[0]+" => "+kvp[1]); }
+            }
 
-            Internal.showDiagnostics = Config.Bind("Troubleshooting", "Log Addition Diagnostic Data", Internal.DiagnosticSelection.none).Value;
+            Internal.delayAuraApplication = Config.Bind("Startup", "Aura Application Delay In Seconds", 5.0f).Value;
 
             var harmony = new Harmony(Guid);
             harmony.PatchAll();
@@ -196,7 +225,7 @@ namespace LordAshes
                     StartCoroutine("DelayedAuraApplication", new object[] { Internal.delayAuraApplication });
                 }
 
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.BackQuote, KeyCode.LeftAlt))) 
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[0].Value)) 
                 {
                     CreatureBoardAsset asset = null;
                     CreaturePresenter.TryGetAsset(LocalClient.SelectedCreatureId, out asset);
@@ -211,19 +240,19 @@ namespace LordAshes
                         AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", pick.ToString());
                     }
                 }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha1, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "1"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha2, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "2"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha3, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "3"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha4, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "4"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha5, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "5"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha6, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "6"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha7, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "7"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha8, KeyCode.LeftAlt)))
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[1].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "1"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[2].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "2"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[3].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "3"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[4].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "4"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[5].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "5"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[6].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "6"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAnimation[7].Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "7"); }
+                if (Utility.StrictKeyCheck(Internal.triggerNamedAnimation.Value))
                 {
                     SystemMessage.AskForTextInput("Play Animation", "Animation Name:", "OK", (userAnim) => { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", userAnim); }, null, "Cancel", null);
                 }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha9, KeyCode.LeftAlt))) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Audio", "On"); }
-                if (Utility.StrictKeyCheck(new KeyboardShortcut(KeyCode.Alpha0, KeyCode.LeftAlt)))
+                if (Utility.StrictKeyCheck(Internal.triggerSound.Value)) { AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Audio", "On"); }
+                if (Utility.StrictKeyCheck(Internal.triggerAllStop.Value))
                 {
                     AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Anim", "");
                     AssetDataPlugin.SetInfo(LocalClient.SelectedCreatureId.ToString(), ExtraAssetsRegistrationPlugin.Guid + ".Audio", "");

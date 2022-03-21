@@ -226,13 +226,15 @@ namespace LordAshes
             {
                 string baseSetting = asset.assetBase.ToUpper();
 
-                if (asset.kind.ToUpper() == "CREATURE" && Internal.baseForCreatures == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
-                if (asset.kind.ToUpper() == "CREATURE" && Internal.baseForCreatures == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
-                if (asset.kind.ToUpper() == "EFFECT" && Internal.baseForEffects == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
-                if (asset.kind.ToUpper() == "EFFECT" && Internal.baseForEffects == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
-                if (asset.kind.ToUpper() == "AUDIO" && Internal.baseForAudio == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
-                if (asset.kind.ToUpper() == "AUDIO" && Internal.baseForAudio == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
-                if (asset.kind.ToUpper() == "FILTER") { baseSetting = "NONE"; }
+                string mode = ApplyTranslations(asset.kind.ToUpper());
+
+                if (mode == "CREATURE" && Internal.baseForCreatures == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
+                if (mode == "CREATURE" && Internal.baseForCreatures == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
+                if (mode == "EFFECT" && Internal.baseForEffects == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
+                if (mode == "EFFECT" && Internal.baseForEffects == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
+                if (mode == "AUDIO" && Internal.baseForAudio == Internal.BaseTypeTriState.alwaysNone) { baseSetting = "NONE"; }
+                if (mode == "AUDIO" && Internal.baseForAudio == Internal.BaseTypeTriState.alwaysBase && asset.assetBase == "NONE") { baseSetting = "DEFAULT"; }
+                if (mode == "FILTER") { baseSetting = "NONE"; }
 
                 if (baseSetting == "NONE") { return ExtraAssetsLibrary.Handlers.BaseHelper.NoBase(); }
                 if (baseSetting == "DEFAULT") { return ExtraAssetsLibrary.Handlers.BaseHelper.DefaultBase(); }
@@ -246,7 +248,7 @@ namespace LordAshes
 
             public static GameObject CreateAsset(Data.AssetInfo assetInfo)
             {
-                string mode = assetInfo.kind.ToUpper();
+                string mode = ApplyTranslations(assetInfo.kind.ToUpper());
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Creating Asset Of Type " + assetInfo.kind); }
                 if (mode != "SLAB")
                 {
@@ -381,7 +383,7 @@ namespace LordAshes
 
                 Data.AssetInfo assetInfo = FindAssetInfo(nguid);
 
-                string mode = assetInfo.kind.ToUpper();
+                string mode = ApplyTranslations(assetInfo.kind.ToUpper());
                 if (modeOverride != null) { mode = modeOverride; }
                 else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) { mode = "AURA"; }
                 else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) { mode = "TRANSFORMATION"; }
@@ -396,7 +398,7 @@ namespace LordAshes
 
                 if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Handling '" + assetInfo.name + "' ("+nguid.ToString()+") Using '" + mode + "' (" + assetInfo.kind + ", A" + (Input.GetKey(KeyCode.LeftAlt) | Input.GetKey(KeyCode.RightAlt)) + "C" + (Input.GetKey(KeyCode.LeftControl) | Input.GetKey(KeyCode.RightControl)) + "S" + (Input.GetKey(KeyCode.LeftShift) | Input.GetKey(KeyCode.RightShift)) + ")"); }
 
-                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "SLAB" || mode == AssetDb.DbEntry.EntryKind.Tile.ToString().ToUpper() || mode == AssetDb.DbEntry.EntryKind.Prop.ToString().ToUpper())
+                if (mode == "CREATURE" || mode == "ENCOUNTER" || mode == "EFFECT" || mode == "SLAB" || mode == ApplyTranslations(AssetDb.DbEntry.EntryKind.Tile.ToString().ToUpper()) || mode == ApplyTranslations(AssetDb.DbEntry.EntryKind.Prop.ToString().ToUpper()))
                 {
                     // Let Core TS spawn new asset
                     if (Internal.showDiagnostics >= Internal.DiagnosticSelection.low) { Debug.Log("Extra Assets Registration Plugin: " + assetInfo.kind + " Mode"); }
@@ -587,6 +589,17 @@ namespace LordAshes
                     json = json.Replace("9" + Internal.fractionalCharacter, "9.");
                 }
                 return json;
+            }
+
+            private static string ApplyTranslations(string local)
+            {
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mode Translation: Local = '"+local+"'"); }
+                foreach (KeyValuePair<string,string> replacement in Internal.languageModeTranslation)
+                {
+                    local = local.Replace(replacement.Key, replacement.Value);
+                }
+                if (Internal.showDiagnostics >= Internal.DiagnosticSelection.high) { Debug.Log("Extra Assets Registration Plugin: Mode Translation: Standard = '" + local + "'"); }
+                return local;
             }
         }
 
