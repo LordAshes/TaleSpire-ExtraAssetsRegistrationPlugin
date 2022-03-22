@@ -8,8 +8,10 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 ## Change Log
 
 ```
-3.5.9: Added random roll function
-3.5.9: Added better pass-thru check for foreign language
+3.7.0: Make all keyboard triggers re-configurable in the EAR R2ModMan configuration
+3.6.1: Added language translation support
+3.5.9: Added random state function
+3.5.9: Improved Tile and Prop pass through check to support foreign languages
 3.5.8: Bug fix to prevent Link Request from previous assets from being added to successive assets
 3.5.7: Bug fix to remove auras on deleted minis coming back on board load
 3.5.6: Bug fix for explosing orintation to config
@@ -28,13 +30,6 @@ This plugin, like all others, is free but if you want to donate, use: http://Lor
 3.3.0: Added Stat Messaging interface to spawn and transform creatures allowing other plugins to make requets to EAR to
        spawn and/or transform minis.
 3.3.0: Added support for hidden groups once EAL supports it.
-3.2.1: Bug Fix: Multi Slab.
-3.2.1: Bug Fix: Multi Slab Delay is now float.
-3.2.0: Fixed bug with text file Encounters. Encounters are now a new kind: Encounter.
-3.1.1: Added missing default pointer asset. No plugin change.
-3.1.0: Added support for encounters from text files (as opposed to asset bundles) similar to multi-slabs.
-3.0.1: Moved cache to CustomData folder so other plugins can access the portraits and assetInfo.cache file.
-3.0.0: Added Aura anchor points to allow creation of general mini swappable equipment.
 ...
 1.0.0: Initial release
 ```
@@ -101,6 +96,7 @@ Demo assets have been moved to their own pack. Search for "Extra Asset Registrat
 ### Keyboard Hotkeys
 
 ```
+LEFT ALT + ~ = Play random aimation from all available animations.
 LEFT ALT + 1 = Play first animation if the asset has such an animation.
 LEFT ALT + 2 = Play second animation if the asset has such an animation.
 LEFT ALT + 3 = Play third animation if the asset has such an animation.
@@ -550,6 +546,22 @@ Lastly, any group that starts with anm opening square bracket will automatically
 for plugins that need to create assets which are not intended to be used directly. In such a case these plugins can
 place the assets in a group that starts with the opening square bracket and the group will be hidden. 
 
+
+## Lamguage Translation Support
+
+Some languages replace some of the regular ASCII characters with variations. For example, Turkish langauge replaces
+the capital I with a special version of capital I. This in turn causes issues when the asset mode is being checked
+because the mode with the special I does not match key words in the code. To get around this, a translation function
+has been added. It can be set in R2ModMan by editing the config for the EAR plugin. It is a single entry with key
+value pairs. The key/value pairs are separated by commas and the key and value are separated by a equals sign.
+The key should be the foreign name and the value should be the standard name that is checked for in the code.
+For example:
+
+``AÜRA=AURA,AÜDIÖ=AUDIO,CRÉATURE=CREATURE,ÉNCÖÜNTER=ENCOUNTER,ÉFFECT=EFFECT,FîLTER=FILTER,...``
+
+For the purpose of mode, each of the replacement is applied before the mode is checked. This means that if set up
+correctly, the key words with special characters will be replaced with the standard version and the plugin will
+recognize the mode.
 
 ## Limitations
 
