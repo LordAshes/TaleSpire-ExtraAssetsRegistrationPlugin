@@ -2,7 +2,7 @@
 
 The follow is not a complete step by step set of instructions but a general work flow with notes about important steps or common mistakes...
 
-Use Unity version ``2021.2.14f1`` or earlier.
+You must use Unity version ``2021.2.14f1`` or earlier because Talespire is built on this version. Newer version of Unity will create assets that Talespire will not be able to properly use and will result is either errors, the asset not working or both.
 
 ## 1. Unity Project
 
@@ -147,12 +147,12 @@ the assetBunle. Right click to access the context menu and Buuild Asset Bundles.
 
 ## 10. Putting The Files In The Right Place
 
-Once you have your asset bundle(s) you need to put them in a File Access Plugin location (also known as FAP location) in order for EAR or
-CMP to find it. The most common place to put custom data, that you are adding manually, is the TaleSpire_CustomData folder. This folder can
-be found in the TaleSpire game directory. Please note that TaleSpire_CustomData is not a TS core folder. It is a folder that is used by
-plugins but not the core game. If the folder does not exist create it. Asset bundles should be placed in a Minis sub-folder and a further
-sub folder that matches the asset bundle name. For example, the assetbundle "smurf" would be located in:
+Once you have your asset bundle(s) you need to put them in a CustomData sub-folder of a Plugins Installation folder. Typically ``[LocalContent]/CustoMData/``. Asset bundles should be placed in a Minis sub-folder and a further sub folder that matches the asset bundle name. For example, the assetbundle "smurf" would be located in:
 
-```TaleSpire_CustomData/Minis/smurf/smurf```
+```[LocalContent]/CustomData/Minis/smurf/smurf```
 
 Where the first smurf is a folder and the second smurf is the assetBundle file.
+
+The location of the Plugins Installtion Folder is typically something like:
+
+``C:\Users\%USERNAME%\AppData\Roaming\r2modmanPlus-local\TaleSpire\profiles\Default\BepInEx\plugins``
