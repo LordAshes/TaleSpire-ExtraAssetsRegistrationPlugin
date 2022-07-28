@@ -2,7 +2,7 @@
 
 The follow is not a complete step by step set of instructions but a general work flow with notes about important steps or common mistakes...
 
-You must use Unity version ``2021.2.14f1`` or earlier because Talespire is built on this version. Newer version of Unity will create assets that Talespire will not be able to properly use and will result is either errors, the asset not working or both.
+You must use Unity version ``2021.2.13`` or earlier because Talespire is built on this version. Newer version of Unity will create assets that Talespire will not be able to properly use and will result is either errors, the asset not working or both.
 
 ## 1. Unity Project
 
